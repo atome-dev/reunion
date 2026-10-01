@@ -5,6 +5,10 @@
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
+        <x-google-button :href="route('auth.google.redirect')" :label="__('Continue with Google')" />
+
+        <flux:separator :text="__('Or continue with email')" />
+
         <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-6">
             @csrf
             <!-- Name -->

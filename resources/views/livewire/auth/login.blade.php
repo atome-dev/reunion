@@ -5,6 +5,8 @@
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
+        <x-google-button :href="route('auth.google.redirect')" :label="__('Continue with Google')" />
+
         <x-passkey-verify />
 
         <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">

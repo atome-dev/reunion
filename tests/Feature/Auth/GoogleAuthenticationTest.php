@@ -162,3 +162,10 @@ test('a logged in user replaying the callback is not switched to another account
     $this->assertAuthenticatedAs($user);
     expect(User::count())->toBe(1);
 });
+
+test('login and register pages offer google', function (string $routeName) {
+    $this->get(route($routeName))
+        ->assertOk()
+        ->assertSee(route('auth.google.redirect'), escape: false)
+        ->assertSee(__('Continue with Google'));
+})->with(['login', 'register']);
