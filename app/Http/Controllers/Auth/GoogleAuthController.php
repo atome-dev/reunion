@@ -28,6 +28,16 @@ class GoogleAuthController extends Controller
     }
 
     /**
+     * Send the logged in user to Google to confirm their identity instead of typing a password.
+     */
+    public function confirm(Request $request): SymfonyRedirectResponse
+    {
+        $request->session()->put('google.confirming', true);
+
+        return Socialite::driver('google')->redirect();
+    }
+
+    /**
      * Handle the user coming back from Google.
      */
     public function callback(Request $request, ResolveGoogleUser $resolveGoogleUser): RedirectResponse

@@ -7,30 +7,36 @@
 
         <x-auth-session-status class="text-center" :status="session('status')" />
 
+        @if (auth()->user()->google_id)
+            <x-google-button :href="route('auth.google.confirm')" :label="__('Confirm with Google')" />
+        @endif
+
         <x-passkey-verify
             options-route="passkey.confirm-options"
             submit-route="passkey.confirm"
             :label="__('Confirm with passkey')"
             :loading-label="__('Confirming...')"
-            :separator="__('Or confirm with password')"
+            :separator="auth()->user()->hasPassword() ? __('Or confirm with password') : null"
         />
 
-        <form method="POST" action="{{ route('password.confirm.store') }}" class="flex flex-col gap-6">
-            @csrf
+        @if (auth()->user()->hasPassword())
+            <form method="POST" action="{{ route('password.confirm.store') }}" class="flex flex-col gap-6">
+                @csrf
 
-            <flux:input
-                name="password"
-                :label="__('Password')"
-                type="password"
-                required
-                autocomplete="current-password"
-                :placeholder="__('Password')"
-                viewable
-            />
+                <flux:input
+                    name="password"
+                    :label="__('Password')"
+                    type="password"
+                    required
+                    autocomplete="current-password"
+                    :placeholder="__('Password')"
+                    viewable
+                />
 
-            <flux:button variant="primary" type="submit" class="w-full" data-test="confirm-password-button">
-                {{ __('Confirm') }}
-            </flux:button>
-        </form>
+                <flux:button variant="primary" type="submit" class="w-full" data-test="confirm-password-button">
+                    {{ __('Confirm') }}
+                </flux:button>
+            </form>
+        @endif
     </div>
 </x-layouts::auth>

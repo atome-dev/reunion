@@ -11,6 +11,10 @@ Route::middleware('guest')->group(function () {
 
 Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
+Route::middleware('auth')->group(function () {
+    Route::get('auth/google/confirm', [GoogleAuthController::class, 'confirm'])->name('auth.google.confirm');
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::view('dashboard', 'dashboard')->name('dashboard');
 });
