@@ -37,3 +37,7 @@ yarn-error.log
 /boost.json
 /opencode.json
 /opencode.jsonc
+
+/.impeccable
+/.playwright-mcp
+/.superpowers
