@@ -16,11 +16,19 @@
                 <flux:heading size="lg">{{ __('Are you sure you want to delete your account?') }}</flux:heading>
 
                 <flux:subheading>
-                    {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.') }}
+                    @if (auth()->user()->hasPassword())
+                        {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.') }}
+                    @else
+                        {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your email address to confirm you would like to permanently delete your account.') }}
+                    @endif
                 </flux:subheading>
             </div>
 
-            <flux:input wire:model="password" :label="__('Password')" type="password" viewable />
+            @if (auth()->user()->hasPassword())
+                <flux:input wire:model="password" :label="__('Password')" type="password" viewable />
+            @else
+                <flux:input wire:model="email" :label="__('Email address')" type="email" autocomplete="off" />
+            @endif
 
             <div class="flex justify-end space-x-2 rtl:space-x-reverse">
                 <flux:modal.close>

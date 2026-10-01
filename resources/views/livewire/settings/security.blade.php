@@ -3,16 +3,27 @@
 
     <flux:heading level="2" class="sr-only">{{ __('Security settings') }}</flux:heading>
 
-    <x-settings.layout :heading="__('Update password')" :subheading="__('Ensure your account is using a long, random password to stay secure')">
+    <x-settings.layout
+        :heading="auth()->user()->hasPassword() ? __('Update password') : __('Set a password')"
+        :subheading="auth()->user()->hasPassword() ? __('Ensure your account is using a long, random password to stay secure') : __('Add a password to also sign in with your email address')"
+    >
+        @if (auth()->user()->google_id)
+            <flux:callout icon="check-circle" class="mt-6">
+                <flux:callout.text>{{ __('Your account is linked to Google.') }}</flux:callout.text>
+            </flux:callout>
+        @endif
+
         <form method="POST" wire:submit="updatePassword" class="mt-6 space-y-6">
-            <flux:input
-                wire:model="current_password"
-                :label="__('Current password')"
-                type="password"
-                required
-                autocomplete="current-password"
-                viewable
-            />
+            @if (auth()->user()->hasPassword())
+                <flux:input
+                    wire:model="current_password"
+                    :label="__('Current password')"
+                    type="password"
+                    required
+                    autocomplete="current-password"
+                    viewable
+                />
+            @endif
             <flux:input
                 wire:model="password"
                 :label="__('New password')"

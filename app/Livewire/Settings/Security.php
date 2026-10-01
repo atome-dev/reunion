@@ -98,10 +98,10 @@ class Security extends Component
     public function updatePassword(): void
     {
         try {
-            $validated = $this->validate([
-                'current_password' => $this->currentPasswordRules(),
+            $validated = $this->validate(array_filter([
+                'current_password' => Auth::user()->hasPassword() ? $this->currentPasswordRules() : null,
                 'password' => $this->passwordRules(),
-            ]);
+            ]));
         } catch (ValidationException $e) {
             $this->reset('current_password', 'password', 'password_confirmation');
 
