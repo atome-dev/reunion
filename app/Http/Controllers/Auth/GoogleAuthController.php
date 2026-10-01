@@ -6,7 +6,7 @@ use App\Actions\Auth\ResolveGoogleUser;
 use App\Exceptions\GoogleAccountRejected;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,7 +47,7 @@ class GoogleAuthController extends Controller
         try {
             /** @var GoogleUser $googleUser */
             $googleUser = Socialite::driver('google')->user();
-        } catch (InvalidStateException|RequestException) {
+        } catch (InvalidStateException|GuzzleException) {
             return $this->failed($confirming && $request->user() ? 'password.confirm' : 'login', __('Google sign-in failed. Please try again.'));
         }
 

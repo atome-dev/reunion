@@ -1,7 +1,10 @@
 <?php
 
 use App\Models\User;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Psr7\Request;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Laravel\Fortify\Features;
 use Laravel\Socialite\Facades\Socialite;
@@ -98,15 +101,51 @@ test('an account linked to another google id is not relinked', function () {
     $this->assertGuest();
 });
 
-test('a new account with an unverified google email must verify its email', function () {
+test('an unverified google email cannot create an account', function () {
     Event::fake([Registered::class]);
     Socialite::fake('google', fakeGoogleUser(['email_verified' => false]));
 
+    $this->get(route('auth.google.callback'))
+        ->assertRedirect(route('login'))
+        ->assertSessionHasErrors('google');
+
+    expect(User::count())->toBe(0);
+    Event::assertNotDispatched(Registered::class);
+    $this->assertGuest();
+});
+
+test('linking an unverified local account revokes the credentials someone else may have set', function () {
+    config(['session.driver' => 'database']);
+    $user = User::factory()->unverified()->withTwoFactor()->create([
+        'email' => 'amina@example.com',
+        'remember_token' => 'attacker-remember-token',
+    ]);
+    DB::table('sessions')->insert([
+        'id' => 'attacker-session',
+        'user_id' => $user->id,
+        'payload' => '',
+        'last_activity' => time(),
+    ]);
+    Socialite::fake('google', fakeGoogleUser());
+
+    $this->get(route('auth.google.callback'))->assertRedirect(route('dashboard'));
+
+    $user->refresh();
+    expect($user->google_id)->toBe('google-123')
+        ->and($user->hasVerifiedEmail())->toBeTrue()
+        ->and($user->hasPassword())->toBeFalse()
+        ->and($user->two_factor_secret)->toBeNull()
+        ->and($user->remember_token)->not->toBe('attacker-remember-token')
+        ->and(DB::table('sessions')->where('id', 'attacker-session')->exists())->toBeFalse();
+});
+
+test('linking a verified local account keeps its password', function () {
+    $user = User::factory()->create(['email' => 'amina@example.com']);
+    Socialite::fake('google', fakeGoogleUser());
+
     $this->get(route('auth.google.callback'));
 
-    $user = User::where('email', 'amina@example.com')->sole();
-    expect($user->hasVerifiedEmail())->toBeFalse();
-    Event::assertDispatched(Registered::class);
+    expect($user->fresh()->hasPassword())->toBeTrue();
 });
 
 test('a google user without a name gets one from the email', function () {
@@ -137,6 +176,16 @@ test('a failed google sign in returns to the login page', function () {
         ->assertSessionHasErrors('google');
 
     $this->assertGuest();
+});
+
+test('a network failure reaching google returns to the login page', function () {
+    Socialite::shouldReceive('driver->user')->andThrow(
+        new ConnectException('Connection timed out', new Request('POST', 'https://oauth2.googleapis.com/token'))
+    );
+
+    $this->get(route('auth.google.callback'))
+        ->assertRedirect(route('login'))
+        ->assertSessionHasErrors('google');
 });
 
 test('the intended url is restored after google sign in', function () {

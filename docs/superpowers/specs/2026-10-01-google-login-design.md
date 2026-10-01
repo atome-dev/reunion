@@ -51,14 +51,16 @@ Routes (middleware `guest`) :
 Action `ResolveGoogleUser` (une responsabilité : trouver, relier ou créer le compte à partir de l'utilisateur Google) :
 
 1. compte avec ce `google_id` → le retourne ;
-2. sinon compte avec le même e-mail :
-   - e-mail vérifié chez Google → renseigne `google_id`, renseigne `email_verified_at` s'il était vide, retourne le compte ;
-   - e-mail non vérifié → refus (exception métier), rien n'est modifié ;
-3. sinon crée le compte : nom et e-mail venant de Google, `email_verified_at` = maintenant, `google_id`, pas de mot de passe.
+2. sinon compte avec le même e-mail (comparaison insensible à la casse) :
+   - e-mail non vérifié chez Google → refus (exception métier), rien n'est modifié ;
+   - compte déjà relié à un autre `google_id` → refus, rien n'est modifié ;
+   - sinon, si l'e-mail local n'avait **jamais été vérifié**, on révoque tout ce qu'un tiers a pu y définir (mot de passe, 2FA, clés d'accès, jeton « se souvenir de moi », sessions en base) — protection contre la pré-inscription malveillante ;
+   - puis renseigne `google_id` et `email_verified_at`, retourne le compte ;
+3. sinon crée le compte, **uniquement si Google certifie l'e-mail** (sinon refus) : nom (ou partie locale de l'e-mail) et e-mail venant de Google, `email_verified_at` = maintenant, `google_id`, pas de mot de passe.
 
 Contrôleur de retour :
 
-- erreur ou annulation chez Google (exception Socialite, état invalide, accès refusé) → redirection vers la connexion avec un message d'erreur ;
+- erreur ou annulation chez Google (état invalide, accès refusé, panne réseau) → redirection vers la connexion avec un message d'erreur ;
 - refus de l'action (e-mail non vérifié) → redirection vers la connexion avec un message expliquant de se connecter par e-mail/mot de passe ;
 - compte avec 2FA confirmée → stocke en session `login.id` et `login.remember` comme Fortify, redirige vers l'écran de code 2FA existant, **sans ouvrir de session** ;
 - sinon → ouvre la session (« se souvenir de moi » activé), régénère la session, redirige vers le tableau de bord.
@@ -109,6 +111,7 @@ Non-régression : toute la suite existante passe.
 
 ## Risques
 
-- **Liaison par e-mail** : n'a lieu que si Google certifie l'e-mail ; un e-mail non vérifié ne prend jamais le contrôle d'un compte existant.
+- **Liaison par e-mail** : n'a lieu que si Google certifie l'e-mail ; un e-mail non vérifié ne prend jamais le contrôle d'un compte existant, et ne peut pas créer de compte.
+- **Pré-inscription malveillante** : un tiers qui crée un compte avec l'adresse de quelqu'un d'autre ne peut pas la vérifier ; quand le vrai propriétaire se connecte avec Google, les identifiants posés par le tiers sont révoqués.
 - **Mot de passe nullable** : tout code qui suppose un mot de passe (règles `current_password`, confirmation) est couvert par les cas ci-dessus et les tests.
 - **Domaine local** : voir la contrainte Google sur l'adresse de retour (section configuration).
