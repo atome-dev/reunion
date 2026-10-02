@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\GroupInvitationController;
 use App\Livewire\Dashboard;
 use App\Livewire\Groups\Show as GroupsShow;
 use App\Livewire\Meetings\Form as MeetingsForm;
@@ -18,6 +19,9 @@ Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->n
 Route::middleware('auth')->group(function () {
     Route::get('auth/google/confirm', [GoogleAuthController::class, 'confirm'])->name('auth.google.confirm');
 });
+
+Route::get('invitations/{token}', [GroupInvitationController::class, 'show'])->name('invitations.show');
+Route::post('invitations/{token}', [GroupInvitationController::class, 'accept'])->middleware('auth')->name('invitations.accept');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', Dashboard::class)->name('dashboard');

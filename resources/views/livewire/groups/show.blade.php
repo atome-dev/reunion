@@ -87,6 +87,39 @@
                 </flux:table.rows>
             </flux:table>
         </flux:card>
+
+        @if ($this->isOrganizer())
+            @if ($this->pendingInvitations->isNotEmpty())
+                <flux:card class="p-0!">
+                    <flux:table>
+                        <flux:table.columns>
+                            <flux:table.column>{{ __('Email address') }}</flux:table.column>
+                            <flux:table.column>{{ __('Status') }}</flux:table.column>
+                            <flux:table.column><span class="sr-only">{{ __('Actions') }}</span></flux:table.column>
+                        </flux:table.columns>
+                        <flux:table.rows>
+                            @foreach ($this->pendingInvitations as $invitation)
+                                <flux:table.row :key="'invitation-'.$invitation->id">
+                                    <flux:table.cell>{{ $invitation->email }}</flux:table.cell>
+                                    <flux:table.cell>
+                                        <flux:badge size="sm" :color="$invitation->isUsable() ? 'sky' : 'zinc'">{{ $invitation->isUsable() ? __('Invitation sent') : __('Invitation expired') }}</flux:badge>
+                                    </flux:table.cell>
+                                    <flux:table.cell align="end">
+                                        <flux:button size="xs" variant="ghost" wire:click="resendInvitation({{ $invitation->id }})">{{ __('Resend') }}</flux:button>
+                                        <flux:button size="xs" variant="ghost" wire:click="cancelInvitation({{ $invitation->id }})">{{ __('Cancel') }}</flux:button>
+                                    </flux:table.cell>
+                                </flux:table.row>
+                            @endforeach
+                        </flux:table.rows>
+                    </flux:table>
+                </flux:card>
+            @endif
+
+            <form wire:submit="invite" class="flex flex-col gap-3">
+                <flux:textarea wire:model="invitationEmails" :label="__('Invite people')" :description="__('One or more email addresses, separated by commas or new lines.')" rows="3" placeholder="amina@example.com, bastien@example.com" />
+                <div><flux:button type="submit" variant="primary" icon="paper-airplane">{{ __('Send the invitations') }}</flux:button></div>
+            </form>
+        @endif
     </section>
 
     @if ($this->isOrganizer())

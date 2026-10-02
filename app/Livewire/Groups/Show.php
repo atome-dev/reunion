@@ -2,9 +2,13 @@
 
 namespace App\Livewire\Groups;
 
+use App\Actions\Groups\InviteToGroup;
+use App\Actions\Groups\SendGroupInvitation;
 use App\Models\Group;
+use App\Models\GroupInvitation;
 use App\Models\Meeting;
 use App\Models\User;
+use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -72,6 +76,51 @@ class Show extends Component
         $this->group->removeMember(Auth::user());
 
         $this->redirectRoute('dashboard', navigate: true);
+    }
+
+    public function invite(InviteToGroup $inviteToGroup): void
+    {
+        $this->authorize('manage', $this->group);
+
+        $result = $inviteToGroup($this->group, Auth::user(), $this->invitationEmails);
+
+        $this->reset('invitationEmails');
+        unset($this->pendingInvitations);
+
+        Flux::toast(variant: 'success', text: trans_choice(':count invitation sent.|:count invitations sent.', count($result['invited'])));
+
+        if ($result['skipped'] !== []) {
+            Flux::toast(text: __('Already member or invited: :emails', ['emails' => implode(', ', $result['skipped'])]));
+        }
+    }
+
+    public function resendInvitation(int $invitationId, SendGroupInvitation $sendGroupInvitation): void
+    {
+        $this->authorize('manage', $this->group);
+
+        $sendGroupInvitation($this->group->invitations()->whereNull('accepted_at')->findOrFail($invitationId));
+
+        Flux::toast(variant: 'success', text: __('Invitation sent again.'));
+    }
+
+    public function cancelInvitation(int $invitationId): void
+    {
+        $this->authorize('manage', $this->group);
+
+        $this->group->invitations()->whereNull('accepted_at')->findOrFail($invitationId)->delete();
+
+        unset($this->pendingInvitations);
+    }
+
+    /**
+     * Invitations not accepted yet, expired ones included so they can be resent.
+     *
+     * @return Collection<int, GroupInvitation>
+     */
+    #[Computed]
+    public function pendingInvitations(): Collection
+    {
+        return $this->group->invitations()->whereNull('accepted_at')->latest()->get();
     }
 
     public function isOrganizer(): bool
