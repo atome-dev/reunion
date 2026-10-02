@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Livewire\Dashboard;
 use App\Livewire\Groups\Show as GroupsShow;
+use App\Livewire\Meetings\Form as MeetingsForm;
 use App\Livewire\Meetings\Show as MeetingsShow;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +22,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', Dashboard::class)->name('dashboard');
     Route::livewire('groups/{group}', GroupsShow::class)->name('groups.show');
+    Route::livewire('groups/{group}/meetings/create', MeetingsForm::class)->name('meetings.create');
     Route::livewire('meetings/{meeting}', MeetingsShow::class)->name('meetings.show');
 });
 

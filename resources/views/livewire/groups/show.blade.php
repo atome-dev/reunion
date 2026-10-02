@@ -1,3 +1,104 @@
-<div>
-    <flux:heading size="xl" level="1">{{ $group->name }}</flux:heading>
+<div class="mx-auto flex w-full max-w-4xl flex-col gap-10">
+    <header class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <flux:heading size="xl" level="1" class="text-3xl! font-extrabold!">{{ $group->name }}</flux:heading>
+            <flux:text>{{ trans_choice(':count member|:count members', $this->members->count()) }}</flux:text>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+            @if ($this->isOrganizer())
+                <flux:button variant="primary" icon="plus" :href="route('meetings.create', $group)" wire:navigate>{{ __('New meeting') }}</flux:button>
+                <flux:dropdown align="end">
+                    <flux:button icon="ellipsis-horizontal" :aria-label="__('Group actions')" />
+                    <flux:menu>
+                        <flux:modal.trigger name="rename-group">
+                            <flux:menu.item icon="pencil">{{ __('Rename') }}</flux:menu.item>
+                        </flux:modal.trigger>
+                        <flux:menu.item icon="trash" variant="danger" wire:click="deleteGroup" wire:confirm="{{ __('Delete this group, its meetings and all answers?') }}">{{ __('Delete the group') }}</flux:menu.item>
+                    </flux:menu>
+                </flux:dropdown>
+            @else
+                <flux:button icon="arrow-right-start-on-rectangle" wire:click="leave" wire:confirm="{{ __('Leave this group?') }}">{{ __('Leave the group') }}</flux:button>
+            @endif
+        </div>
+    </header>
+
+    <section class="flex flex-col gap-4">
+        <flux:heading size="lg" level="2">{{ __('Upcoming meetings') }}</flux:heading>
+        @forelse ($this->upcomingMeetings as $meeting)
+            @php($answers = $meeting->slots->flatMap->availabilities->pluck('user_id')->unique()->count())
+            <a wire:key="meeting-{{ $meeting->id }}" href="{{ route('meetings.show', $meeting) }}" wire:navigate class="group/card block">
+                <flux:card class="flex flex-wrap items-center justify-between gap-4 transition group-hover/card:border-forest! dark:group-hover/card:border-sun!">
+                    <flux:heading>{{ $meeting->title }}</flux:heading>
+                    <flux:badge size="sm">{{ trans_choice(':count answer|:count answers', $answers) }}</flux:badge>
+                </flux:card>
+            </a>
+        @empty
+            <flux:text>{{ __('No upcoming meeting') }}</flux:text>
+        @endforelse
+
+        @if ($this->pastMeetings->isNotEmpty())
+            <flux:accordion>
+                <flux:accordion.item :heading="__('Past meetings')">
+                    <ul class="flex flex-col gap-2">
+                        @foreach ($this->pastMeetings as $meeting)
+                            <li wire:key="past-{{ $meeting->id }}"><flux:link :href="route('meetings.show', $meeting)" wire:navigate>{{ $meeting->title }}</flux:link></li>
+                        @endforeach
+                    </ul>
+                </flux:accordion.item>
+            </flux:accordion>
+        @endif
+    </section>
+
+    <section class="flex flex-col gap-4">
+        <flux:heading size="lg" level="2">{{ __('Members') }}</flux:heading>
+        <flux:card class="p-0!">
+            <flux:table>
+                <flux:table.columns>
+                    <flux:table.column>{{ __('Name') }}</flux:table.column>
+                    <flux:table.column>{{ __('Role') }}</flux:table.column>
+                    @if ($this->isOrganizer())
+                        <flux:table.column><span class="sr-only">{{ __('Actions') }}</span></flux:table.column>
+                    @endif
+                </flux:table.columns>
+                <flux:table.rows>
+                    @foreach ($this->members as $member)
+                        <flux:table.row :key="'member-'.$member->id">
+                            <flux:table.cell class="flex items-center gap-3">
+                                <flux:avatar :name="$member->name" :initials="$member->initials()" size="xs" />
+                                {{ $member->name }}
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                @if ($group->isOrganizer($member))
+                                    <flux:badge size="sm" color="yellow">{{ __('Organizer') }}</flux:badge>
+                                @else
+                                    <flux:badge size="sm">{{ __('Member') }}</flux:badge>
+                                @endif
+                            </flux:table.cell>
+                            @if ($this->isOrganizer())
+                                <flux:table.cell align="end">
+                                    @unless ($group->isOrganizer($member))
+                                        <flux:button size="sm" variant="ghost" icon="x-mark" wire:click="removeMember({{ $member->id }})" wire:confirm="{{ __('Remove :name from the group?', ['name' => $member->name]) }}" :aria-label="__('Remove :name from the group?', ['name' => $member->name])" />
+                                    @endunless
+                                </flux:table.cell>
+                            @endif
+                        </flux:table.row>
+                    @endforeach
+                </flux:table.rows>
+            </flux:table>
+        </flux:card>
+    </section>
+
+    @if ($this->isOrganizer())
+        <flux:modal name="rename-group" class="max-w-md">
+            <form wire:submit="rename" class="flex flex-col gap-6">
+                <flux:heading size="lg">{{ __('Rename the group') }}</flux:heading>
+                <flux:input wire:model="name" :label="__('Group name')" required />
+                <div class="flex justify-end gap-2">
+                    <flux:modal.close><flux:button variant="filled">{{ __('Cancel') }}</flux:button></flux:modal.close>
+                    <flux:button variant="primary" type="submit">{{ __('Save') }}</flux:button>
+                </div>
+            </form>
+        </flux:modal>
+    @endif
 </div>
