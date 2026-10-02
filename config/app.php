@@ -68,6 +68,12 @@ return [
     'timezone' => 'UTC',
 
     /*
+    | Timezone in which meeting dates are entered and displayed. Dates are stored in UTC.
+    */
+
+    'display_timezone' => env('APP_DISPLAY_TIMEZONE', 'Europe/Paris'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------
