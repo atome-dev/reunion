@@ -2,6 +2,7 @@
 
 namespace App\View\Components;
 
+use App\Actions\Meetings\FindBestSlot;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
@@ -64,22 +65,17 @@ class DemoPoll extends Component
     }
 
     /**
-     * The date gathering the most members, preferring the one with more people on site on a tie.
+     * Delegates to the same rule as real meetings.
      */
     public function bestDateIndex(): int
     {
-        $best = 0;
+        $tallies = array_map(
+            fn (array $tally, int $index): array => $tally + ['startsAt' => now()->startOfDay()->addDays($index)],
+            $this->tallies,
+            array_keys($this->tallies),
+        );
 
-        foreach ($this->tallies as $index => $tally) {
-            $total = $tally['onSite'] + $tally['remote'];
-            $bestTotal = $this->tallies[$best]['onSite'] + $this->tallies[$best]['remote'];
-
-            if ($total > $bestTotal || ($total === $bestTotal && $tally['onSite'] > $this->tallies[$best]['onSite'])) {
-                $best = $index;
-            }
-        }
-
-        return $best;
+        return (new FindBestSlot)($tallies) ?? 0;
     }
 
     public function render(): View|Closure|string
