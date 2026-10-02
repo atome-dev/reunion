@@ -6,6 +6,7 @@ use App\Models\GroupInvitation;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class GroupInvitationController extends Controller
 {
@@ -32,14 +33,27 @@ class GroupInvitationController extends Controller
             return view('invitations.invalid');
         }
 
-        if (! $invitation->group->hasMember($request->user())) {
-            $invitation->group->addMember($request->user());
-        }
+        $claimed = DB::transaction(function () use ($invitation, $request): bool {
+            $updated = GroupInvitation::query()
+                ->whereKey($invitation->id)
+                ->whereNull('accepted_at')
+                ->where('expires_at', '>', now())
+                ->update(['accepted_at' => now(), 'accepted_by' => $request->user()->id]);
 
-        $invitation->forceFill([
-            'accepted_at' => now(),
-            'accepted_by' => $request->user()->id,
-        ])->save();
+            if ($updated !== 1) {
+                return false;
+            }
+
+            if (! $invitation->group->hasMember($request->user())) {
+                $invitation->group->addMember($request->user());
+            }
+
+            return true;
+        });
+
+        if (! $claimed) {
+            return view('invitations.invalid');
+        }
 
         return redirect()->route('groups.show', $invitation->group);
     }

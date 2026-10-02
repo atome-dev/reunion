@@ -167,3 +167,19 @@ test('the invitation email names the group, the inviter and the expiry', functio
         ->and($mail->actionUrl)->toBe(route('invitations.show', $token))
         ->and(implode(' ', $mail->introLines))->toContain($this->organizer->name);
 });
+
+test('an invitation claimed by a concurrent request cannot be used a second time', function () {
+    $token = inviteAndGetToken($this->group, 'amina@example.com');
+    $firstUser = User::factory()->create();
+    $secondUser = User::factory()->create();
+
+    GroupInvitation::retrieved(function (GroupInvitation $invitation) use ($firstUser) {
+        GroupInvitation::query()->whereKey($invitation->id)->update(['accepted_at' => now(), 'accepted_by' => $firstUser->id]);
+    });
+
+    $this->actingAs($secondUser)->post(route('invitations.accept', $token))
+        ->assertSee(__('This invitation is no longer valid'));
+
+    expect($this->group->hasMember($secondUser))->toBeFalse()
+        ->and(GroupInvitation::sole()->accepted_by)->toBe($firstUser->id);
+});
