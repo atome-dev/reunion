@@ -26,6 +26,14 @@ class Show extends Component
         $this->name = $group->name;
     }
 
+    /**
+     * Re-check access on every subsequent request: membership can change while the page is open.
+     */
+    public function hydrate(): void
+    {
+        $this->authorize('view', $this->group);
+    }
+
     public function rename(): void
     {
         $this->authorize('manage', $this->group);

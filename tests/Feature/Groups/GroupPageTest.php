@@ -89,3 +89,11 @@ test('a member leaves the group but the organizer cannot', function () {
         ->call('leave')
         ->assertForbidden();
 });
+
+test('a member removed while the page is open loses access on the next request', function () {
+    $component = Livewire::actingAs($this->member)->test(Show::class, ['group' => $this->group]);
+
+    $this->group->removeMember($this->member);
+
+    $component->call('$refresh')->assertNotFound();
+});
