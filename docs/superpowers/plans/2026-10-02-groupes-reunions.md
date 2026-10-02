@@ -12,6 +12,7 @@
 
 ## Global Constraints
 
+- **Flux d'abord (exigence utilisateur)** : utiliser un composant Flux partout où il en existe un — `flux:card` pour tout bloc ou élément de liste, `flux:table` (`table.columns` / `table.column` / `table.rows` / `table.row` / `table.cell`) pour toute donnée tabulaire (membres, invitations, réponses), `flux:date-picker` + `flux:time-picker` pour les dates, `flux:radio.group variant="segmented"` pour les choix, `flux:callout`, `flux:badge`, `flux:modal`, `flux:dropdown` / `flux:menu`, `flux:avatar`, `flux:textarea`, `flux:fieldset`, `flux:heading`, `flux:text`, `flux:link`, `flux:button`, `flux:separator`. Du HTML/Tailwind brut uniquement pour la mise en page (grilles, espacements) et pour les pastilles de disponibilité (aucun composant Flux équivalent). Vérifier les props avec `search-docs` (paquets `livewire/flux`, `livewire/flux-pro`) avant d'écrire une vue.
 - Composants Livewire au format **classe** : `app/Livewire/<Domaine>/<Nom>.php` + `resources/views/livewire/<domaine>/<nom>.blade.php` (sans méthode `render()`, comme `App\Livewire\Settings\Profile`), routes `Route::livewire(...)`.
 - Fichiers générés par `php artisan make:* --no-interaction`.
 - Modèles : attributs `#[Fillable([...])]` (comme `User`), `casts()` en méthode, PHPDoc `@property`.
@@ -1287,19 +1288,15 @@ Dans `routes/web.php`, remplacer `Route::view('dashboard', 'dashboard')->name('d
     @if ($this->pendingMeetings->isNotEmpty())
         <section class="flex flex-col gap-4">
             <flux:heading size="lg" level="2">{{ __('Waiting for your answer') }}</flux:heading>
-            <ul class="flex flex-col gap-3">
-                @foreach ($this->pendingMeetings as $meeting)
-                    <li wire:key="pending-{{ $meeting->id }}" class="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-sun/40 px-5 py-4 dark:bg-sun/10">
-                        <div>
-                            <p class="font-semibold">{{ $meeting->title }}</p>
-                            <p class="text-sm text-zinc-600 dark:text-zinc-300">
-                                {{ $meeting->group->name }} · {{ trans_choice(':count date|:count dates', $meeting->slots->count()) }}
-                            </p>
-                        </div>
-                        <flux:button variant="primary" :href="route('meetings.show', $meeting)" wire:navigate>{{ __('Answer') }}</flux:button>
-                    </li>
-                @endforeach
-            </ul>
+            @foreach ($this->pendingMeetings as $meeting)
+                <flux:card wire:key="pending-{{ $meeting->id }}" class="flex flex-wrap items-center justify-between gap-4 bg-sun/40! dark:bg-sun/10!">
+                    <div>
+                        <flux:heading>{{ $meeting->title }}</flux:heading>
+                        <flux:text>{{ $meeting->group->name }} · {{ trans_choice(':count date|:count dates', $meeting->slots->count()) }}</flux:text>
+                    </div>
+                    <flux:button variant="primary" :href="route('meetings.show', $meeting)" wire:navigate>{{ __('Answer') }}</flux:button>
+                </flux:card>
+            @endforeach
         </section>
     @endif
 
@@ -1315,23 +1312,23 @@ Dans `routes/web.php`, remplacer `Route::view('dashboard', 'dashboard')->name('d
 
         @forelse ($this->groups as $group)
             @php($nextMeeting = $group->meetings->sortBy(fn ($meeting) => $meeting->slots->first()?->starts_at)->first())
-            <a wire:key="group-{{ $group->id }}" href="{{ route('groups.show', $group) }}" wire:navigate class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white px-5 py-4 transition hover:border-forest dark:border-white/10 dark:bg-night-raised dark:hover:border-sun">
-                <div>
-                    <p class="font-semibold">{{ $group->name }}</p>
-                    <p class="text-sm text-zinc-600 dark:text-zinc-300">{{ trans_choice(':count member|:count members', $group->members_count) }}</p>
-                </div>
-                <p class="text-sm text-zinc-600 dark:text-zinc-300">
-                    {{ $nextMeeting ? __('Next: :title', ['title' => $nextMeeting->title]) : __('No upcoming meeting') }}
-                </p>
+            <a wire:key="group-{{ $group->id }}" href="{{ route('groups.show', $group) }}" wire:navigate class="group/card block">
+                <flux:card class="flex flex-wrap items-center justify-between gap-4 transition group-hover/card:border-forest! dark:group-hover/card:border-sun!">
+                    <div>
+                        <flux:heading>{{ $group->name }}</flux:heading>
+                        <flux:text>{{ trans_choice(':count member|:count members', $group->members_count) }}</flux:text>
+                    </div>
+                    <flux:text>{{ $nextMeeting ? __('Next: :title', ['title' => $nextMeeting->title]) : __('No upcoming meeting') }}</flux:text>
+                </flux:card>
             </a>
         @empty
-            <div class="flex flex-col items-start gap-4 rounded-2xl bg-sun/40 p-8 dark:bg-sun/10">
+            <flux:card class="flex flex-col items-start gap-4 bg-sun/40! dark:bg-sun/10!">
                 <flux:heading size="lg">{{ __('Start by creating a group') }}</flux:heading>
                 <flux:text>{{ __('A group gathers the people you meet regularly: your board, your club, your collective.') }}</flux:text>
                 <flux:modal.trigger name="create-group">
                     <flux:button variant="primary" icon="plus">{{ __('Create my first group') }}</flux:button>
                 </flux:modal.trigger>
-            </div>
+            </flux:card>
         @endforelse
     </section>
 
@@ -1670,44 +1667,66 @@ class Show extends Component
         <flux:heading size="lg" level="2">{{ __('Upcoming meetings') }}</flux:heading>
         @forelse ($this->upcomingMeetings as $meeting)
             @php($answers = $meeting->slots->flatMap->availabilities->pluck('user_id')->unique()->count())
-            <a wire:key="meeting-{{ $meeting->id }}" href="{{ route('meetings.show', $meeting) }}" wire:navigate class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white px-5 py-4 transition hover:border-forest dark:border-white/10 dark:bg-night-raised dark:hover:border-sun">
-                <p class="font-semibold">{{ $meeting->title }}</p>
-                <p class="text-sm text-zinc-600 dark:text-zinc-300">{{ trans_choice(':count answer|:count answers', $answers) }}</p>
+            <a wire:key="meeting-{{ $meeting->id }}" href="{{ route('meetings.show', $meeting) }}" wire:navigate class="group/card block">
+                <flux:card class="flex flex-wrap items-center justify-between gap-4 transition group-hover/card:border-forest! dark:group-hover/card:border-sun!">
+                    <flux:heading>{{ $meeting->title }}</flux:heading>
+                    <flux:badge size="sm">{{ trans_choice(':count answer|:count answers', $answers) }}</flux:badge>
+                </flux:card>
             </a>
         @empty
             <flux:text>{{ __('No upcoming meeting') }}</flux:text>
         @endforelse
 
         @if ($this->pastMeetings->isNotEmpty())
-            <details class="rounded-2xl border border-zinc-200 px-5 py-3 dark:border-white/10">
-                <summary class="cursor-pointer font-semibold">{{ __('Past meetings') }}</summary>
-                <ul class="mt-3 flex flex-col gap-2">
-                    @foreach ($this->pastMeetings as $meeting)
-                        <li wire:key="past-{{ $meeting->id }}"><flux:link :href="route('meetings.show', $meeting)" wire:navigate>{{ $meeting->title }}</flux:link></li>
-                    @endforeach
-                </ul>
-            </details>
+            <flux:accordion>
+                <flux:accordion.item :heading="__('Past meetings')">
+                    <ul class="flex flex-col gap-2">
+                        @foreach ($this->pastMeetings as $meeting)
+                            <li wire:key="past-{{ $meeting->id }}"><flux:link :href="route('meetings.show', $meeting)" wire:navigate>{{ $meeting->title }}</flux:link></li>
+                        @endforeach
+                    </ul>
+                </flux:accordion.item>
+            </flux:accordion>
         @endif
     </section>
 
     <section class="flex flex-col gap-4">
         <flux:heading size="lg" level="2">{{ __('Members') }}</flux:heading>
-        <ul class="divide-y divide-zinc-200 rounded-2xl border border-zinc-200 bg-white dark:divide-white/10 dark:border-white/10 dark:bg-night-raised">
-            @foreach ($this->members as $member)
-                <li wire:key="member-{{ $member->id }}" class="flex items-center justify-between gap-4 px-5 py-3">
-                    <div class="flex items-center gap-3">
-                        <flux:avatar :name="$member->name" :initials="$member->initials()" size="sm" />
-                        <span class="font-medium">{{ $member->name }}</span>
-                        @if ($group->isOrganizer($member))
-                            <flux:badge size="sm" color="yellow">{{ __('Organizer') }}</flux:badge>
-                        @endif
-                    </div>
-                    @if ($this->isOrganizer() && ! $group->isOrganizer($member))
-                        <flux:button size="sm" variant="ghost" icon="x-mark" wire:click="removeMember({{ $member->id }})" wire:confirm="{{ __('Remove :name from the group?', ['name' => $member->name]) }}" :aria-label="__('Remove :name from the group?', ['name' => $member->name])" />
+        <flux:card class="p-0!">
+            <flux:table>
+                <flux:table.columns>
+                    <flux:table.column>{{ __('Name') }}</flux:table.column>
+                    <flux:table.column>{{ __('Role') }}</flux:table.column>
+                    @if ($this->isOrganizer())
+                        <flux:table.column><span class="sr-only">{{ __('Actions') }}</span></flux:table.column>
                     @endif
-                </li>
-            @endforeach
-        </ul>
+                </flux:table.columns>
+                <flux:table.rows>
+                    @foreach ($this->members as $member)
+                        <flux:table.row :key="'member-'.$member->id">
+                            <flux:table.cell class="flex items-center gap-3">
+                                <flux:avatar :name="$member->name" :initials="$member->initials()" size="xs" />
+                                {{ $member->name }}
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                @if ($group->isOrganizer($member))
+                                    <flux:badge size="sm" color="yellow">{{ __('Organizer') }}</flux:badge>
+                                @else
+                                    <flux:badge size="sm">{{ __('Member') }}</flux:badge>
+                                @endif
+                            </flux:table.cell>
+                            @if ($this->isOrganizer())
+                                <flux:table.cell align="end">
+                                    @unless ($group->isOrganizer($member))
+                                        <flux:button size="sm" variant="ghost" icon="x-mark" wire:click="removeMember({{ $member->id }})" wire:confirm="{{ __('Remove :name from the group?', ['name' => $member->name]) }}" :aria-label="__('Remove :name from the group?', ['name' => $member->name])" />
+                                    @endunless
+                                </flux:table.cell>
+                            @endif
+                        </flux:table.row>
+                    @endforeach
+                </flux:table.rows>
+            </flux:table>
+        </flux:card>
     </section>
 
     @if ($this->isOrganizer())
@@ -1731,6 +1750,10 @@ La route `meetings.create` est créée en Task 7 ; pour que la vue compile maint
 
 ```json
 ":count answer|:count answers": ":count réponse|:count réponses",
+"Actions": "Actions",
+"Member": "Membre",
+"Name": "Nom",
+"Role": "Rôle",
 "Delete the group": "Supprimer le groupe",
 "Delete this group, its meetings and all answers?": "Supprimer ce groupe, ses réunions et toutes les réponses ?",
 "Group actions": "Actions du groupe",
@@ -2156,17 +2179,29 @@ Dans la vue, dans la section « Membres », après la liste (organisateur seulem
 ```blade
         @if ($this->isOrganizer())
             @if ($this->pendingInvitations->isNotEmpty())
-                <ul class="flex flex-col gap-2">
-                    @foreach ($this->pendingInvitations as $invitation)
-                        <li wire:key="invitation-{{ $invitation->id }}" class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-zinc-100 px-4 py-2 text-sm dark:bg-white/5">
-                            <span>{{ $invitation->email }} · {{ $invitation->isUsable() ? __('Invitation sent') : __('Invitation expired') }}</span>
-                            <span class="flex gap-1">
-                                <flux:button size="xs" variant="ghost" wire:click="resendInvitation({{ $invitation->id }})">{{ __('Resend') }}</flux:button>
-                                <flux:button size="xs" variant="ghost" wire:click="cancelInvitation({{ $invitation->id }})">{{ __('Cancel') }}</flux:button>
-                            </span>
-                        </li>
-                    @endforeach
-                </ul>
+                <flux:card class="p-0!">
+                    <flux:table>
+                        <flux:table.columns>
+                            <flux:table.column>{{ __('Email address') }}</flux:table.column>
+                            <flux:table.column>{{ __('Status') }}</flux:table.column>
+                            <flux:table.column><span class="sr-only">{{ __('Actions') }}</span></flux:table.column>
+                        </flux:table.columns>
+                        <flux:table.rows>
+                            @foreach ($this->pendingInvitations as $invitation)
+                                <flux:table.row :key="'invitation-'.$invitation->id">
+                                    <flux:table.cell>{{ $invitation->email }}</flux:table.cell>
+                                    <flux:table.cell>
+                                        <flux:badge size="sm" :color="$invitation->isUsable() ? 'sky' : 'zinc'">{{ $invitation->isUsable() ? __('Invitation sent') : __('Invitation expired') }}</flux:badge>
+                                    </flux:table.cell>
+                                    <flux:table.cell align="end">
+                                        <flux:button size="xs" variant="ghost" wire:click="resendInvitation({{ $invitation->id }})">{{ __('Resend') }}</flux:button>
+                                        <flux:button size="xs" variant="ghost" wire:click="cancelInvitation({{ $invitation->id }})">{{ __('Cancel') }}</flux:button>
+                                    </flux:table.cell>
+                                </flux:table.row>
+                            @endforeach
+                        </flux:table.rows>
+                    </flux:table>
+                </flux:card>
             @endif
 
             <form wire:submit="invite" class="flex flex-col gap-3">
@@ -2297,6 +2332,7 @@ Route::post('invitations/{token}', [GroupInvitationController::class, 'accept'])
 "One or more email addresses, separated by commas or new lines.": "Une ou plusieurs adresses e-mail, séparées par des virgules ou des retours à la ligne.",
 "Resend": "Renvoyer",
 "Send the invitations": "Envoyer les invitations",
+"Status": "Statut",
 "The link has expired, was already used or was cancelled. Ask the organizer of the group to send you a new invitation.": "Le lien a expiré, a déjà été utilisé ou a été annulé. Demandez à l'organisateur du groupe de vous envoyer une nouvelle invitation.",
 "These addresses are not valid: :emails": "Ces adresses ne sont pas valides : :emails",
 "This invitation expires on :date.": "Cette invitation expire le :date.",
@@ -2327,7 +2363,7 @@ git commit -m "Invite people to a group by email"
 
 **Interfaces:**
 - Consumes: `MeetingPolicy::manage`, `GroupPolicy::manage`, `MeetingSlot::startsAtLocal()`.
-- Produces: routes `meetings.create` (GET `/groups/{group}/meetings/create`), `meetings.edit` (GET `/meetings/{meeting}/edit`) ; composant `Meetings\Form` : propriétés `title`, `description`, `location`, `array $slots` (liste de `array{id: int|null, starts_at: string}` au format `Y-m-d\TH:i` dans le fuseau d'affichage) ; actions `addSlot()`, `removeSlot(int $index)`, `save()`, `deleteMeeting()`.
+- Produces: routes `meetings.create` (GET `/groups/{group}/meetings/create`), `meetings.edit` (GET `/meetings/{meeting}/edit`) ; composant `Meetings\Form` : propriétés `title`, `description`, `location`, `array $slots` (liste de `array{id: int|null, date: string, time: string}`, `date` au format `Y-m-d` lié à `flux:date-picker`, `time` au format `H:i` lié à `flux:time-picker`, dans le fuseau d'affichage) ; actions `addSlot()`, `removeSlot(int $index)`, `save()`, `deleteMeeting()`.
 
 - [ ] **Step 1 : Écrire les tests qui échouent**
 
@@ -2355,8 +2391,8 @@ test('the organizer creates a meeting with several dates stored in UTC', functio
         ->set('title', 'Assemblée de rentrée')
         ->set('location', 'Salle des fêtes')
         ->set('slots', [
-            ['id' => null, 'starts_at' => '2026-10-14T18:30'],
-            ['id' => null, 'starts_at' => '2026-10-16T18:30'],
+            ['id' => null, 'date' => '2026-10-14', 'time' => '18:30'],
+            ['id' => null, 'date' => '2026-10-16', 'time' => '18:30'],
         ])
         ->call('save')
         ->assertHasNoErrors()
@@ -2371,16 +2407,16 @@ test('a meeting needs at least two different dates and a title', function () {
     Livewire::actingAs($this->organizer)
         ->test(Form::class, ['group' => $this->group])
         ->set('title', '')
-        ->set('slots', [['id' => null, 'starts_at' => '2026-10-14T18:30']])
+        ->set('slots', [['id' => null, 'date' => '2026-10-14', 'time' => '18:30']])
         ->call('save')
         ->assertHasErrors(['title', 'slots']);
 
     Livewire::actingAs($this->organizer)
         ->test(Form::class, ['group' => $this->group])
         ->set('title', 'Doublon')
-        ->set('slots', [['id' => null, 'starts_at' => '2026-10-14T18:30'], ['id' => null, 'starts_at' => '2026-10-14T18:30']])
+        ->set('slots', [['id' => null, 'date' => '2026-10-14', 'time' => '18:30'], ['id' => null, 'date' => '2026-10-14', 'time' => '18:30']])
         ->call('save')
-        ->assertHasErrors('slots.1.starts_at');
+        ->assertHasErrors('slots.1.time');
 
     expect(Meeting::count())->toBe(0);
 });
@@ -2389,7 +2425,7 @@ test('a date around the autumn clock change keeps its local time', function () {
     Livewire::actingAs($this->organizer)
         ->test(Form::class, ['group' => $this->group])
         ->set('title', 'Changement d\'heure')
-        ->set('slots', [['id' => null, 'starts_at' => '2026-10-24T20:00'], ['id' => null, 'starts_at' => '2026-10-25T20:00']])
+        ->set('slots', [['id' => null, 'date' => '2026-10-24', 'time' => '20:00'], ['id' => null, 'date' => '2026-10-25', 'time' => '20:00']])
         ->call('save');
 
     expect(MeetingSlot::orderBy('starts_at')->get()->map->startsAtLocal()->map->format('Y-m-d\TH:i')->all())
@@ -2408,10 +2444,11 @@ test('editing keeps answers of untouched dates and drops answers of removed or m
 
     Livewire::actingAs($this->organizer)
         ->test(Form::class, ['meeting' => $meeting])
-        ->assertSet('slots.0.starts_at', '2026-11-02T18:30')
+        ->assertSet('slots.0.date', '2026-11-02')
+        ->assertSet('slots.0.time', '18:30')
         ->set('slots', [
-            ['id' => $kept->id, 'starts_at' => '2026-11-02T18:30'],
-            ['id' => $moved->id, 'starts_at' => '2026-11-03T20:00'],
+            ['id' => $kept->id, 'date' => '2026-11-02', 'time' => '18:30'],
+            ['id' => $moved->id, 'date' => '2026-11-03', 'time' => '20:00'],
         ])
         ->call('save')
         ->assertHasNoErrors();
@@ -2429,8 +2466,8 @@ test('slot ids of another meeting are ignored when editing', function () {
     Livewire::actingAs($this->organizer)
         ->test(Form::class, ['meeting' => $meeting])
         ->set('slots', [
-            ['id' => $foreign->id, 'starts_at' => '2026-12-05T10:00'],
-            ['id' => null, 'starts_at' => '2026-12-06T10:00'],
+            ['id' => $foreign->id, 'date' => '2026-12-05', 'time' => '10:00'],
+            ['id' => null, 'date' => '2026-12-06', 'time' => '10:00'],
         ])
         ->call('save');
 
@@ -2480,6 +2517,7 @@ use App\Models\MeetingSlot;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class Form extends Component
@@ -2495,7 +2533,7 @@ class Form extends Component
     public string $location = '';
 
     /**
-     * @var list<array{id: int|null, starts_at: string}>
+     * @var list<array{id: int|null, date: string, time: string}>
      */
     public array $slots = [];
 
@@ -2511,7 +2549,8 @@ class Form extends Component
             $this->location = (string) $meeting->location;
             $this->slots = $meeting->slots->map(fn (MeetingSlot $slot): array => [
                 'id' => $slot->id,
-                'starts_at' => $slot->startsAtLocal()->format('Y-m-d\TH:i'),
+                'date' => $slot->startsAtLocal()->format('Y-m-d'),
+                'time' => $slot->startsAtLocal()->format('H:i'),
             ])->all();
 
             return;
@@ -2520,12 +2559,12 @@ class Form extends Component
         $this->authorize('manage', $group);
 
         $this->group = $group;
-        $this->slots = [['id' => null, 'starts_at' => ''], ['id' => null, 'starts_at' => '']];
+        $this->slots = [['id' => null, 'date' => '', 'time' => '18:30'], ['id' => null, 'date' => '', 'time' => '18:30']];
     }
 
     public function addSlot(): void
     {
-        $this->slots[] = ['id' => null, 'starts_at' => ''];
+        $this->slots[] = ['id' => null, 'date' => '', 'time' => end($this->slots)['time'] ?? '18:30'];
     }
 
     public function removeSlot(int $index): void
@@ -2545,8 +2584,11 @@ class Form extends Component
             'description' => ['nullable', 'string', 'max:2000'],
             'location' => ['nullable', 'string', 'max:255'],
             'slots' => ['array', 'min:2'],
-            'slots.*.starts_at' => ['required', 'date_format:Y-m-d\TH:i', 'distinct'],
+            'slots.*.date' => ['required', 'date_format:Y-m-d'],
+            'slots.*.time' => ['required', 'date_format:H:i'],
         ]);
+
+        $this->ensureDatesAreDistinct();
 
         $meeting = DB::transaction(function (): Meeting {
             $meeting = $this->meeting ?? new Meeting;
@@ -2570,6 +2612,26 @@ class Form extends Component
         $this->redirectRoute('meetings.show', $meeting, navigate: true);
     }
 
+    /**
+     * Two candidate dates cannot share the same day and time.
+     *
+     * @throws ValidationException
+     */
+    private function ensureDatesAreDistinct(): void
+    {
+        $seen = [];
+
+        foreach ($this->slots as $index => $slot) {
+            $key = $slot['date'].' '.$slot['time'];
+
+            if (isset($seen[$key])) {
+                throw ValidationException::withMessages(["slots.{$index}.time" => __('This date is already proposed.')]);
+            }
+
+            $seen[$key] = true;
+        }
+    }
+
     public function deleteMeeting(): void
     {
         $this->authorize('manage', $this->meeting);
@@ -2591,7 +2653,7 @@ class Form extends Component
         $existing = $existing->only($requestedIds->all());
 
         foreach ($this->slots as $slot) {
-            $startsAt = Carbon::createFromFormat('Y-m-d\TH:i', $slot['starts_at'], config('app.display_timezone'))->utc();
+            $startsAt = Carbon::createFromFormat('Y-m-d H:i', $slot['date'].' '.$slot['time'], config('app.display_timezone'))->utc();
             $current = $slot['id'] !== null ? $existing->get($slot['id']) : null;
 
             if ($current === null) {
@@ -2633,17 +2695,21 @@ class Form extends Component
 
             <div class="mt-4 flex flex-col gap-3">
                 @foreach ($slots as $index => $slot)
-                    <div wire:key="slot-{{ $slot['id'] ?? 'new-'.$index }}" class="flex items-start gap-2">
-                        <div class="flex-1">
-                            <flux:input type="datetime-local" wire:model="slots.{{ $index }}.starts_at" :aria-label="__('Date :number', ['number' => $index + 1])" required />
-                            <flux:error name="slots.{{ $index }}.starts_at" />
+                    <flux:card wire:key="slot-{{ $slot['id'] ?? 'new-'.$index }}" class="flex flex-wrap items-start gap-3 p-3!">
+                        <div class="min-w-48 flex-1">
+                            <flux:date-picker wire:model="slots.{{ $index }}.date" locale="fr" :placeholder="__('Date :number', ['number' => $index + 1])" :min="today()->format('Y-m-d')" with-today />
+                            <flux:error name="slots.{{ $index }}.date" />
+                        </div>
+                        <div class="w-32">
+                            <flux:time-picker wire:model="slots.{{ $index }}.time" locale="fr" time-format="24-hour" :aria-label="__('Time')" />
+                            <flux:error name="slots.{{ $index }}.time" />
                         </div>
                         @if (count($slots) > 2)
                             <flux:button variant="ghost" icon="x-mark" wire:click="removeSlot({{ $index }})"
                                 @if ($slot['id']) wire:confirm="{{ __('Remove this date? Answers given for it will be deleted.') }}" @endif
                                 :aria-label="__('Remove this date')" />
                         @endif
-                    </div>
+                    </flux:card>
                 @endforeach
             </div>
             <flux:error name="slots" />
@@ -2686,6 +2752,8 @@ Dans le groupe `auth` + `verified` de `routes/web.php` (la route `meetings.creat
 "Remove this date": "Retirer cette date",
 "Remove this date? Answers given for it will be deleted.": "Retirer cette date ? Les réponses données pour elle seront supprimées.",
 "Save the meeting": "Enregistrer la réunion",
+"This date is already proposed.": "Cette date est déjà proposée.",
+"Time": "Heure",
 "Title": "Titre"
 ```
 
@@ -2961,30 +3029,30 @@ class Show extends Component
     </header>
 
     @php($best = $this->bestSlotId ? $this->slots->firstWhere('id', $this->bestSlotId) : null)
-    <section @class(['rounded-2xl px-6 py-5', 'bg-sun text-forest' => $best, 'bg-zinc-100 dark:bg-white/5' => ! $best])>
-        @if ($best)
-            @php($tally = $this->tallies[$best->id])
-            <p class="text-sm font-semibold uppercase tracking-wide opacity-70">{{ __('Best date so far') }}</p>
-            <p class="text-2xl font-extrabold">{{ ucfirst($best->startsAtLocal()->translatedFormat('l j F · H\hi')) }}</p>
-            <p>{{ __(':total present · :onSite on site, :remote remotely', ['total' => $tally['onSite'] + $tally['remote'], 'onSite' => $tally['onSite'], 'remote' => $tally['remote']]) }}</p>
-        @else
-            <p class="font-semibold">{{ __('Waiting for answers') }}</p>
-        @endif
-    </section>
+    @if ($best)
+        @php($tally = $this->tallies[$best->id])
+        <flux:card class="border-transparent! bg-sun! text-forest">
+            <flux:text class="font-semibold uppercase tracking-wide text-forest/70!">{{ __('Best date so far') }}</flux:text>
+            <flux:heading size="xl" class="text-forest! text-2xl! font-extrabold!">{{ ucfirst($best->startsAtLocal()->translatedFormat('l j F · H\hi')) }}</flux:heading>
+            <flux:text class="text-forest!">{{ __(':total present · :onSite on site, :remote remotely', ['total' => $tally['onSite'] + $tally['remote'], 'onSite' => $tally['onSite'], 'remote' => $tally['remote']]) }}</flux:text>
+        </flux:card>
+    @else
+        <flux:callout icon="clock" :heading="__('Waiting for answers')" />
+    @endif
 
     <section class="flex flex-col gap-4">
         <flux:heading size="lg" level="2">{{ __('Your answer') }}</flux:heading>
         <form wire:submit="save" class="flex flex-col gap-3">
             @foreach ($this->slots as $index => $slot)
-                <div wire:key="answer-{{ $slot->id }}" class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-white/10 dark:bg-night-raised">
-                    <span class="font-semibold">{{ ucfirst($slot->startsAtLocal()->translatedFormat('l j F · H\hi')) }}</span>
+                <flux:card wire:key="answer-{{ $slot->id }}" class="flex flex-col gap-2 p-4! sm:flex-row sm:items-center sm:justify-between">
+                    <flux:heading>{{ ucfirst($slot->startsAtLocal()->translatedFormat('l j F · H\hi')) }}</flux:heading>
                     <flux:radio.group wire:model="responses.{{ $slot->id }}" variant="segmented" size="sm" :aria-label="__('Date :number', ['number' => $index + 1])">
                         @foreach (\App\Enums\AvailabilityStatus::cases() as $status)
                             <flux:radio :value="$status->value" :label="$status->label()" />
                         @endforeach
                     </flux:radio.group>
                     <flux:error name="responses.{{ $slot->id }}" />
-                </div>
+                </flux:card>
             @endforeach
             <div><flux:button variant="primary" type="submit">{{ __('Save my answer') }}</flux:button></div>
         </form>
@@ -2992,27 +3060,27 @@ class Show extends Component
 
     <section class="flex flex-col gap-4">
         <flux:heading size="lg" level="2">{{ __('Everyone\'s answers') }}</flux:heading>
-        <div class="overflow-x-auto rounded-2xl border border-zinc-200 bg-white dark:border-white/10 dark:bg-night-raised">
-            <table class="w-full border-separate border-spacing-0 text-sm">
-                <thead>
-                    <tr>
-                        <th scope="col" class="px-4 py-3 text-left"><span class="sr-only">{{ __('Member') }}</span></th>
-                        @foreach ($this->slots as $slot)
-                            <th scope="col" wire:key="head-{{ $slot->id }}" @class(['px-2 py-3 text-center font-semibold', 'bg-sun/50 dark:bg-sun/15' => $slot->id === $this->bestSlotId])>
-                                <span class="block text-xs font-medium opacity-60">{{ ucfirst($slot->startsAtLocal()->translatedFormat('D')) }}</span>
-                                <span class="block">{{ $slot->startsAtLocal()->translatedFormat('j M') }}</span>
-                                <span class="block text-xs opacity-60">{{ $slot->startsAtLocal()->format('H\hi') }}</span>
-                            </th>
-                        @endforeach
-                    </tr>
-                </thead>
-                <tbody>
+        <flux:card class="p-0!">
+            <flux:table>
+                <flux:table.columns>
+                    <flux:table.column>{{ __('Member') }}</flux:table.column>
+                    @foreach ($this->slots as $slot)
+                        <flux:table.column :key="'head-'.$slot->id" align="center" @class(['bg-sun/50 dark:bg-sun/15' => $slot->id === $this->bestSlotId])>
+                            <span class="flex flex-col items-center leading-tight">
+                                <span class="text-xs font-medium opacity-60">{{ ucfirst($slot->startsAtLocal()->translatedFormat('D')) }}</span>
+                                <span>{{ $slot->startsAtLocal()->translatedFormat('j M') }}</span>
+                                <span class="text-xs opacity-60">{{ $slot->startsAtLocal()->format('H\hi') }}</span>
+                            </span>
+                        </flux:table.column>
+                    @endforeach
+                </flux:table.columns>
+                <flux:table.rows>
                     @foreach ($this->members as $member)
-                        <tr wire:key="row-{{ $member->id }}">
-                            <th scope="row" class="px-4 py-2 text-left font-semibold">{{ $member->name }}</th>
+                        <flux:table.row :key="'row-'.$member->id">
+                            <flux:table.cell variant="strong">{{ $member->name }}</flux:table.cell>
                             @foreach ($this->slots as $slot)
                                 @php($status = $slot->availabilities->firstWhere('user_id', $member->id)?->status)
-                                <td wire:key="cell-{{ $member->id }}-{{ $slot->id }}" @class(['px-2 py-2 text-center', 'bg-sun/50 dark:bg-sun/15' => $slot->id === $this->bestSlotId])>
+                                <flux:table.cell :key="'cell-'.$member->id.'-'.$slot->id" align="center" @class(['bg-sun/50 dark:bg-sun/15' => $slot->id === $this->bestSlotId])>
                                     @if ($status === \App\Enums\AvailabilityStatus::OnSite)
                                         <span class="mx-auto grid size-7 place-items-center rounded-full bg-forest text-white dark:bg-sun dark:text-forest"><flux:icon.map-pin variant="micro" class="size-3.5" /><span class="sr-only">{{ $status->label() }}</span></span>
                                     @elseif ($status === \App\Enums\AvailabilityStatus::Remote)
@@ -3022,22 +3090,22 @@ class Show extends Component
                                     @else
                                         <span class="text-xs opacity-40">—</span><span class="sr-only">{{ __('No answer') }}</span>
                                     @endif
-                                </td>
+                                </flux:table.cell>
                             @endforeach
-                        </tr>
+                        </flux:table.row>
                     @endforeach
-                    <tr>
-                        <th scope="row" class="px-4 py-3 text-left text-sm font-semibold opacity-70">{{ __('Total') }}</th>
+                    <flux:table.row>
+                        <flux:table.cell variant="strong">{{ __('Total') }}</flux:table.cell>
                         @foreach ($this->slots as $slot)
                             @php($tally = $this->tallies[$slot->id])
-                            <td wire:key="total-{{ $slot->id }}" class="px-2 py-3 text-center">
-                                <span @class(['mx-auto block w-fit rounded-full px-3 py-1 font-extrabold tabular-nums', 'bg-forest text-sun dark:bg-sun dark:text-forest' => $slot->id === $this->bestSlotId])>{{ $tally['onSite'] + $tally['remote'] }}</span>
-                            </td>
+                            <flux:table.cell :key="'total-'.$slot->id" align="center">
+                                <flux:badge size="sm" :color="$slot->id === $this->bestSlotId ? 'yellow' : 'zinc'" class="font-extrabold tabular-nums">{{ $tally['onSite'] + $tally['remote'] }}</flux:badge>
+                            </flux:table.cell>
                         @endforeach
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                    </flux:table.row>
+                </flux:table.rows>
+            </flux:table>
+        </flux:card>
 
         @if ($this->isOrganizer() && $this->nonRespondents->isNotEmpty())
             <flux:callout icon="clock">
@@ -3058,7 +3126,6 @@ class Show extends Component
 "Best date so far": "Meilleure date pour l'instant",
 "Edit": "Modifier",
 "Everyone's answers": "Les réponses de chacun",
-"Member": "Membre",
 "No answer": "Pas de réponse",
 "Not answered yet": "N'ont pas encore répondu",
 "Save my answer": "Enregistrer ma réponse",
