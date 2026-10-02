@@ -16,6 +16,22 @@
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
+                @if (auth()->user()->groups->isNotEmpty())
+                    <flux:sidebar.group :heading="__('My groups')" class="grid">
+                        @foreach (auth()->user()->groups as $sidebarGroup)
+                            <flux:sidebar.item
+                                wire:key="sidebar-group-{{ $sidebarGroup->id }}"
+                                icon="user-group"
+                                :href="route('groups.show', $sidebarGroup)"
+                                :current="request()->is('groups/'.$sidebarGroup->id)"
+                                class="data-current:bg-sun! data-current:text-forest! data-current:border-transparent!"
+                                wire:navigate
+                            >
+                                {{ $sidebarGroup->name }}
+                            </flux:sidebar.item>
+                        @endforeach
+                    </flux:sidebar.group>
+                @endif
             </flux:sidebar.nav>
 
             <flux:spacer />
