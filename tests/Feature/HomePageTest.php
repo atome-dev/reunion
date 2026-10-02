@@ -36,3 +36,17 @@ test('auth pages use the branded layout with the compact demo poll', function ()
         ->assertSee('Jardin partagé des Lilas')
         ->assertDontSee('data-you="0"', escape: false);
 });
+
+test('the home page explains how it works step by step before the closing call to action', function () {
+    $response = $this->get(route('home'))->assertOk();
+
+    $response->assertSeeInOrder([
+        'Comment ça marche, en 30 secondes',
+        'Créez votre groupe',
+        'Invitez les membres',
+        'Proposez des dates',
+        'Chacun répond',
+        'La date se dégage',
+        'Votre prochaine réunion commence ici.',
+    ]);
+});

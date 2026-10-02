@@ -82,6 +82,12 @@
                 </div>
             </section>
 
+            {{-- Animated walkthrough --}}
+            <section class="mx-auto max-w-6xl px-5 pb-24 sm:px-8 sm:pb-32">
+                <h2 class="max-w-2xl text-4xl font-extrabold tracking-[-0.025em] text-balance sm:text-5xl">Comment ça marche, en 30 secondes</h2>
+                <x-how-it-works class="mt-14" />
+            </section>
+
             {{-- Close --}}
             <section class="bg-forest text-milk dark:bg-night-raised">
                 <div class="mx-auto flex max-w-6xl flex-col items-start gap-8 px-5 py-24 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
