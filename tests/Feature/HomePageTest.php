@@ -42,11 +42,11 @@ test('the home page explains how it works step by step before the closing call t
 
     $response->assertSeeInOrder([
         'Comment ça marche, en 30 secondes',
-        'Créez votre groupe',
-        'Invitez les membres',
-        'Proposez des dates',
-        'Chacun répond',
-        'La date se dégage',
+        'Lancez une demande',
+        'Chacun colorie ses disponibilités',
+        'Le résumé trouve les meilleurs créneaux',
+        'Validez, ou faites voter',
+        'Tout le monde est prévenu',
         'Votre prochaine réunion commence ici.',
     ]);
 });
