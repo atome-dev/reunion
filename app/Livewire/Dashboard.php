@@ -74,6 +74,18 @@ class Dashboard extends Component
     }
 
     /**
+     * Days I filled in between today and the last editable day.
+     */
+    #[Computed]
+    public function filledDayCount(): int
+    {
+        return AvailabilityDay::query()
+            ->where('user_id', Auth::id())
+            ->whereBetween('day', [now(config('app.display_timezone'))->toDateString(), AvailabilityDay::lastEditableDay()->toDateString()])
+            ->count();
+    }
+
+    /**
      * Confirmed meetings of my groups still ahead.
      *
      * @return Collection<int, Meeting>

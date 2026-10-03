@@ -1,6 +1,6 @@
 <?php
 
-use App\Livewire\Meetings\AvailabilityGrid;
+use App\Livewire\Availability\Grid;
 use App\Models\AvailabilityDay;
 use App\Models\Group;
 use App\Models\Meeting;
@@ -19,14 +19,14 @@ test('a member saves days and an empty day is removed', function () {
     $evening = str_repeat('0', 20).'pppp'.str_repeat('0', 4);
 
     Livewire::actingAs($this->member)
-        ->test(AvailabilityGrid::class, ['meeting' => $this->meeting])
+        ->test(Grid::class, ['meeting' => $this->meeting])
         ->call('saveDays', ['2026-11-04' => $evening, '2026-11-05' => $evening])
         ->assertHasNoErrors();
 
     expect(AvailabilityDay::where('user_id', $this->member->id)->orderBy('day')->pluck('cells', 'day')->all())
         ->toBe(['2026-11-04' => $evening, '2026-11-05' => $evening]);
 
-    $component = Livewire::actingAs($this->member)->test(AvailabilityGrid::class, ['meeting' => $this->meeting]);
+    $component = Livewire::actingAs($this->member)->test(Grid::class, ['meeting' => $this->meeting]);
 
     expect($component->instance()->cells)->toBe(['2026-11-04' => $evening, '2026-11-05' => $evening]);
 
@@ -37,7 +37,7 @@ test('a member saves days and an empty day is removed', function () {
 
 test('days outside the range or malformed cells are refused', function (array $days) {
     Livewire::actingAs($this->member)
-        ->test(AvailabilityGrid::class, ['meeting' => $this->meeting])
+        ->test(Grid::class, ['meeting' => $this->meeting])
         ->call('saveDays', $days)
         ->assertHasErrors('days');
 
@@ -53,7 +53,7 @@ test('the deadline is indicative: saving after it is still allowed', function ()
     $this->travelTo(now('Europe/Paris')->setDate(2026, 11, 6));
 
     Livewire::actingAs($this->member)
-        ->test(AvailabilityGrid::class, ['meeting' => $this->meeting])
+        ->test(Grid::class, ['meeting' => $this->meeting])
         ->call('saveDays', ['2026-11-07' => str_repeat('d', 28)])
         ->assertHasNoErrors();
 
@@ -63,7 +63,7 @@ test('the deadline is indicative: saving after it is still allowed', function ()
 test('the grid is read only once the vote has started', function () {
     $this->meeting->forceFill(['status' => 'voting'])->save();
 
-    $component = Livewire::actingAs($this->member)->test(AvailabilityGrid::class, ['meeting' => $this->meeting]);
+    $component = Livewire::actingAs($this->member)->test(Grid::class, ['meeting' => $this->meeting]);
 
     expect($component->instance()->canEdit)->toBeFalse();
 
@@ -75,19 +75,19 @@ test('each member only writes their own grid, outsiders get a 404', function () 
     $this->group->addMember($other);
 
     Livewire::actingAs($other)
-        ->test(AvailabilityGrid::class, ['meeting' => $this->meeting])
+        ->test(Grid::class, ['meeting' => $this->meeting])
         ->call('saveDays', ['2026-11-04' => str_repeat('p', 28)]);
 
     expect(AvailabilityDay::sole()->user_id)->toBe($other->id);
 
     Livewire::actingAs(User::factory()->create())
-        ->test(AvailabilityGrid::class, ['meeting' => $this->meeting])
+        ->test(Grid::class, ['meeting' => $this->meeting])
         ->assertNotFound();
 });
 
 test('weeks run from monday to sunday and mark days outside the range', function () {
     $weeks = Livewire::actingAs($this->member)
-        ->test(AvailabilityGrid::class, ['meeting' => $this->meeting])
+        ->test(Grid::class, ['meeting' => $this->meeting])
         ->instance()->weeks;
 
     expect($weeks)->toHaveCount(2)
@@ -99,7 +99,7 @@ test('weeks run from monday to sunday and mark days outside the range', function
 
 test('a refused save shows its error and a later valid save clears it', function () {
     $component = Livewire::actingAs($this->member)
-        ->test(AvailabilityGrid::class, ['meeting' => $this->meeting])
+        ->test(Grid::class, ['meeting' => $this->meeting])
         ->call('saveDays', ['2026-11-03' => str_repeat('p', 28)])
         ->assertHasErrors('days')
         ->assertSee(__('This availability could not be saved.'));
@@ -111,7 +111,7 @@ test('a refused save shows its error and a later valid save clears it', function
 
 test('saveDays reports success to the browser', function () {
     Livewire::actingAs($this->member)
-        ->test(AvailabilityGrid::class, ['meeting' => $this->meeting])
+        ->test(Grid::class, ['meeting' => $this->meeting])
         ->call('saveDays', ['2026-11-04' => str_repeat('p', 28)])
         ->assertReturned(true);
 });

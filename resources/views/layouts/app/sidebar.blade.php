@@ -15,6 +15,9 @@
                     <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" class="data-current:bg-sun! data-current:text-forest! data-current:border-transparent!" wire:navigate>
                         {{ __('Dashboard') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="calendar-days" :href="route('availability.edit')" :current="request()->routeIs('availability.edit')" class="data-current:bg-sun! data-current:text-forest! data-current:border-transparent!" wire:navigate>
+                        {{ __('My availability') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
                 @if (auth()->user()->groups->isNotEmpty())
                     <flux:sidebar.group :heading="__('My groups')" class="grid">

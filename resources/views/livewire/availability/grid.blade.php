@@ -11,7 +11,9 @@
             <span class="inline-flex items-center gap-1.5"><span class="size-4 rounded border border-zinc-300 dark:border-white/20"></span>{{ __('Unavailable') }}</span>
         </div>
         <flux:text size="sm">
-            {{ trans_choice(':count person has answered|:count people have answered', $this->respondentCount) }} {{ __('out of :total', ['total' => $this->memberCount]) }}
+            @if ($meeting)
+                {{ trans_choice(':count person has answered|:count people have answered', $this->respondentCount) }} {{ __('out of :total', ['total' => $this->memberCount]) }}
+            @endif
             <span x-show="status !== 'idle'" x-cloak>·</span>
             <span role="status" aria-live="polite" class="inline-flex items-center gap-2">
                 <span x-show="status === 'saving'" x-cloak>{{ __('Saving…') }}</span>

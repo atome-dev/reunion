@@ -40,8 +40,11 @@
     @else
         {{-- The organizer is a participant too: their own grid comes first, then the summary. --}}
         <section class="flex flex-col gap-4">
-            <flux:heading size="lg" level="2">{{ __('My availability') }}</flux:heading>
-            <livewire:meetings.availability-grid :meeting="$meeting" :key="'grid-'.$meeting->id" />
+            <div class="flex items-baseline justify-between gap-4">
+                <flux:heading size="lg" level="2">{{ __('My availability') }}</flux:heading>
+                <flux:link :href="route('availability.edit')" wire:navigate class="text-sm">{{ __('See my whole calendar') }}</flux:link>
+            </div>
+            <livewire:availability.grid :meeting="$meeting" :key="'grid-'.$meeting->id" />
         </section>
         @if ($this->isOrganizer())
             <section class="flex flex-col gap-4">

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\GroupInvitationController;
 use App\Http\Controllers\MeetingCalendarController;
+use App\Livewire\Availability\Edit as AvailabilityEdit;
 use App\Livewire\Dashboard;
 use App\Livewire\Groups\Show as GroupsShow;
 use App\Livewire\Meetings\Form as MeetingsForm;
@@ -26,6 +27,7 @@ Route::post('invitations/{token}', [GroupInvitationController::class, 'accept'])
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', Dashboard::class)->name('dashboard');
+    Route::livewire('disponibilites', AvailabilityEdit::class)->name('availability.edit');
     Route::livewire('groups/{group}', GroupsShow::class)->name('groups.show');
     Route::livewire('groups/{group}/meetings/create', MeetingsForm::class)->name('meetings.create');
     Route::livewire('meetings/{meeting}/edit', MeetingsForm::class)->name('meetings.edit');

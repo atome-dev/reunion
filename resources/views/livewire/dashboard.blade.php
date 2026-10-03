@@ -1,4 +1,16 @@
 <div class="mx-auto flex w-full max-w-4xl flex-col gap-10">
+    <flux:card class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <flux:heading size="lg" level="2">{{ __('My availability') }}</flux:heading>
+            <flux:text class="mt-1">
+                {{ $this->filledDayCount > 0
+                    ? trans_choice(':count day filled in over the next 3 months|:count days filled in over the next 3 months', $this->filledDayCount)
+                    : __('No availability filled in yet') }}
+            </flux:text>
+        </div>
+        <flux:button variant="primary" icon="calendar-days" :href="route('availability.edit')" wire:navigate>{{ __('Fill in my availability') }}</flux:button>
+    </flux:card>
+
     @if ($this->pendingMeetings->isNotEmpty())
         <section class="flex flex-col gap-4">
             <flux:heading size="lg" level="2">{{ __('Waiting for your answer') }}</flux:heading>

@@ -1,7 +1,7 @@
 <?php
 
+use App\Livewire\Availability\Grid;
 use App\Livewire\Groups\Show as GroupShow;
-use App\Livewire\Meetings\AvailabilityGrid;
 use App\Livewire\Meetings\Show;
 use App\Livewire\Meetings\Summary;
 use App\Livewire\Meetings\Vote;
@@ -77,7 +77,7 @@ test('saving a grid notifies the summary, which refreshes its windows', function
     expect($summary->instance()->windows)->toBeEmpty();
 
     Livewire::actingAs($this->organizer)
-        ->test(AvailabilityGrid::class, ['meeting' => $meeting])
+        ->test(Grid::class, ['meeting' => $meeting])
         ->call('saveDays', ['2026-10-25' => $evening])
         ->assertDispatched('availability-saved');
 
@@ -89,7 +89,7 @@ test('saving a grid notifies the summary, which refreshes its windows', function
 
 test('saving the same day twice keeps a single row', function () {
     $meeting = Meeting::factory()->for($this->group)->create(['range_start' => '2026-10-24', 'range_end' => '2026-10-26', 'deadline' => '2026-10-23']);
-    $component = Livewire::actingAs($this->member)->test(AvailabilityGrid::class, ['meeting' => $meeting]);
+    $component = Livewire::actingAs($this->member)->test(Grid::class, ['meeting' => $meeting]);
 
     $component->call('saveDays', ['2026-10-25' => str_repeat('0', 20).'pppppppp'])
         ->call('saveDays', ['2026-10-25' => str_repeat('0', 20).'dddddddd']);
@@ -132,7 +132,7 @@ test('weeks of the grid start on monday whatever the locale', function () {
     app()->setLocale('en');
     $meeting = Meeting::factory()->for($this->group)->create(['range_start' => '2026-10-28', 'range_end' => '2026-11-05', 'deadline' => '2026-10-27']);
 
-    $weeks = Livewire::actingAs($this->member)->test(AvailabilityGrid::class, ['meeting' => $meeting])->instance()->weeks;
+    $weeks = Livewire::actingAs($this->member)->test(Grid::class, ['meeting' => $meeting])->instance()->weeks;
 
     expect($weeks[0][0]['date'])->toBe('2026-10-26')
         ->and(collect($weeks)->last()[6]['date'])->toBe('2026-11-08');
@@ -157,7 +157,7 @@ test('a member removed mid-session gets a 404 on the next call', function (strin
 
     $test->call('$refresh')->assertNotFound();
 })->with([
-    'grid' => [AvailabilityGrid::class, 'collecting', false],
+    'grid' => [Grid::class, 'collecting', false],
     'summary' => [Summary::class, 'collecting', true],
     'vote' => [Vote::class, 'voting', false],
     'show' => [Show::class, 'collecting', false],

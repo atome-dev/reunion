@@ -15,10 +15,10 @@ test('while collecting, members see their grid and the organizer sees their grid
     $meeting = Meeting::factory()->for($this->group)->create(['title' => 'AG']);
 
     $this->actingAs($this->member)->get(route('meetings.show', $meeting))
-        ->assertOk()->assertSeeLivewire('meetings.availability-grid')->assertDontSeeLivewire('meetings.summary');
+        ->assertOk()->assertSeeLivewire('availability.grid')->assertDontSeeLivewire('meetings.summary');
 
     $this->actingAs($this->organizer)->get(route('meetings.show', $meeting))
-        ->assertSeeLivewire('meetings.summary')->assertSeeLivewire('meetings.availability-grid')
+        ->assertSeeLivewire('meetings.summary')->assertSeeLivewire('availability.grid')
         ->assertSeeInOrder([__('My availability'), __('Best slots')]);
 });
 
