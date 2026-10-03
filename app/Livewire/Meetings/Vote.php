@@ -16,6 +16,7 @@ use Carbon\CarbonInterface;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -54,15 +55,14 @@ class Vote extends Component
             "responses.{$slot->id}" => ['required', Rule::enum(AvailabilityStatus::class)],
         ])->all());
 
-        foreach ($this->proposedSlots as $slot) {
-            $vote = $slot->votes->firstWhere('user_id', Auth::id()) ?? tap(new SlotVote, function (SlotVote $vote) use ($slot): void {
-                $vote->slot()->associate($slot);
-                $vote->user()->associate(Auth::user());
-            });
-
-            $vote->status = AvailabilityStatus::from($this->responses[$slot->id]);
-            $vote->save();
-        }
+        DB::transaction(function (): void {
+            foreach ($this->proposedSlots as $slot) {
+                SlotVote::unguarded(fn () => SlotVote::query()->updateOrCreate(
+                    ['meeting_slot_id' => $slot->id, 'user_id' => Auth::id()],
+                    ['status' => AvailabilityStatus::from($this->responses[$slot->id])],
+                ));
+            }
+        });
 
         unset($this->proposedSlots, $this->tallies, $this->bestSlotId, $this->nonVoters);
 

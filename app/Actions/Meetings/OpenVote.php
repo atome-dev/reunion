@@ -18,21 +18,23 @@ class OpenVote
     {
         $distinct = collect($slots)->unique(fn (array $slot): string => $slot[0]->getTimestamp().'-'.$slot[1]->getTimestamp());
 
-        if ($meeting->status !== MeetingStatus::Collecting || $distinct->count() < 2) {
-            throw new InvalidMeetingTransition(__('Choose at least two different slots to open a vote.'));
-        }
-
         DB::transaction(function () use ($meeting, $distinct): void {
-            $meeting->slots()->delete();
+            $locked = Meeting::query()->lockForUpdate()->findOrFail($meeting->id);
 
-            foreach ($distinct as [$startsAt, $endsAt]) {
-                $meeting->slots()->create(['starts_at' => $startsAt, 'ends_at' => $endsAt]);
+            if ($locked->status !== MeetingStatus::Collecting || $distinct->count() < 2) {
+                throw new InvalidMeetingTransition(__('Choose at least two different slots to open a vote.'));
             }
 
-            $meeting->forceFill(['status' => MeetingStatus::Voting])->save();
+            $locked->slots()->delete();
+
+            foreach ($distinct as [$startsAt, $endsAt]) {
+                $locked->slots()->create(['starts_at' => $startsAt, 'ends_at' => $endsAt]);
+            }
+
+            $locked->forceFill(['status' => MeetingStatus::Voting])->save();
         });
 
-        $meeting->load('slots');
+        $meeting->refresh()->load('slots');
 
         foreach ($meeting->group->members()->whereKeyNot($meeting->created_by)->get() as $member) {
             rescue(fn () => $member->notify(new VoteOpenedNotification($meeting)), report: true);

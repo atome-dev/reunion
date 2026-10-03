@@ -11,13 +11,17 @@ class CancelVote
 {
     public function __invoke(Meeting $meeting): void
     {
-        if ($meeting->status !== MeetingStatus::Voting) {
-            throw new InvalidMeetingTransition(__('There is no vote to cancel.'));
-        }
-
         DB::transaction(function () use ($meeting): void {
-            $meeting->slots()->delete();
-            $meeting->forceFill(['status' => MeetingStatus::Collecting])->save();
+            $locked = Meeting::query()->lockForUpdate()->findOrFail($meeting->id);
+
+            if ($locked->status !== MeetingStatus::Voting) {
+                throw new InvalidMeetingTransition(__('There is no vote to cancel.'));
+            }
+
+            $locked->slots()->delete();
+            $locked->forceFill(['status' => MeetingStatus::Collecting])->save();
         });
+
+        $meeting->refresh();
     }
 }

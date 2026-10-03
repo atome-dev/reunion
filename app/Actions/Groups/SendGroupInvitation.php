@@ -23,7 +23,7 @@ class SendGroupInvitation
             'expires_at' => now()->addDays(self::ValidityDays),
         ])->save();
 
-        Notification::route('mail', $invitation->email)
-            ->notify(new GroupInvitationNotification($invitation, $token));
+        rescue(fn () => Notification::route('mail', $invitation->email)
+            ->notify(new GroupInvitationNotification($invitation, $token)), report: true);
     }
 }

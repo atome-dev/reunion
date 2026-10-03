@@ -145,9 +145,4 @@ class Meeting extends Model
     {
         return collect(array_keys($this->cellsByMember()));
     }
-
-    public function isPast(): bool
-    {
-        return $this->status === MeetingStatus::Confirmed && $this->confirmed_starts_at?->isPast();
-    }
 }

@@ -12,6 +12,9 @@ use Illuminate\Support\Carbon;
  */
 class MeetingSlotFactory extends Factory
 {
+    /** Increasing day offset, so two slots of one meeting never share a start. */
+    private static int $dayOffset = 0;
+
     /**
      * Define the model's default state.
      *
@@ -21,7 +24,7 @@ class MeetingSlotFactory extends Factory
     {
         return [
             'meeting_id' => Meeting::factory(),
-            'starts_at' => now()->addDays(fake()->numberBetween(1, 30))->setTime(18, 30),
+            'starts_at' => now()->addDays(++self::$dayOffset)->setTime(18, 30),
             'ends_at' => fn (array $attributes) => Carbon::parse($attributes['starts_at'])->addHours(2),
         ];
     }

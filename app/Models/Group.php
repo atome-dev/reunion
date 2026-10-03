@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @property int $id
@@ -66,15 +67,17 @@ class Group extends Model
      */
     public function removeMember(User $user): void
     {
-        $meetingIds = $this->meetings()->pluck('id');
+        DB::transaction(function () use ($user): void {
+            $meetingIds = $this->meetings()->pluck('id');
 
-        SlotVote::query()
-            ->where('user_id', $user->id)
-            ->whereIn('meeting_slot_id', MeetingSlot::query()->select('id')->whereIn('meeting_id', $meetingIds))
-            ->delete();
+            SlotVote::query()
+                ->where('user_id', $user->id)
+                ->whereIn('meeting_slot_id', MeetingSlot::query()->select('id')->whereIn('meeting_id', $meetingIds))
+                ->delete();
 
-        AvailabilityDay::query()->where('user_id', $user->id)->whereIn('meeting_id', $meetingIds)->delete();
+            AvailabilityDay::query()->where('user_id', $user->id)->whereIn('meeting_id', $meetingIds)->delete();
 
-        $this->members()->detach($user->id);
+            $this->members()->detach($user->id);
+        });
     }
 }
