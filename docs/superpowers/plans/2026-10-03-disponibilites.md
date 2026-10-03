@@ -3133,14 +3133,15 @@ beforeEach(function () {
     $this->group->addMember($this->member);
 });
 
-test('while collecting, members see their grid and the organizer also sees the summary', function () {
+test('while collecting, members see their grid and the organizer sees their grid before the summary', function () {
     $meeting = Meeting::factory()->for($this->group)->create(['title' => 'AG']);
 
     $this->actingAs($this->member)->get(route('meetings.show', $meeting))
         ->assertOk()->assertSeeLivewire('meetings.availability-grid')->assertDontSeeLivewire('meetings.summary');
 
     $this->actingAs($this->organizer)->get(route('meetings.show', $meeting))
-        ->assertSeeLivewire('meetings.summary')->assertSeeLivewire('meetings.availability-grid');
+        ->assertSeeLivewire('meetings.summary')->assertSeeLivewire('meetings.availability-grid')
+        ->assertSeeInOrder([__('My availability'), __('Best slots')]);
 });
 
 test('while voting, the vote is shown', function () {
@@ -3284,16 +3285,17 @@ class Show extends Component
     @elseif ($meeting->status === MeetingStatus::Voting)
         <livewire:meetings.vote :meeting="$meeting" :key="'vote-'.$meeting->id" />
     @else
+        {{-- The organizer is a participant too: their own grid comes first, then the summary. --}}
+        <section class="flex flex-col gap-4">
+            <flux:heading size="lg" level="2">{{ __('My availability') }}</flux:heading>
+            <livewire:meetings.availability-grid :meeting="$meeting" :key="'grid-'.$meeting->id" />
+        </section>
         @if ($this->isOrganizer())
             <section class="flex flex-col gap-4">
                 <flux:heading size="lg" level="2">{{ __('Best slots') }}</flux:heading>
                 <livewire:meetings.summary :meeting="$meeting" :key="'summary-'.$meeting->id" />
             </section>
         @endif
-        <section class="flex flex-col gap-4">
-            <flux:heading size="lg" level="2">{{ __('My availability') }}</flux:heading>
-            <livewire:meetings.availability-grid :meeting="$meeting" :key="'grid-'.$meeting->id" />
-        </section>
     @endif
 </div>
 ```
