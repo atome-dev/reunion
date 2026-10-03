@@ -63,13 +63,16 @@ class Form extends Component
     {
         $today = today(config('app.display_timezone'))->toDateString();
 
+        $startChanged = ! $this->meeting?->exists || $this->meeting->range_start->toDateString() !== $this->rangeStart;
+        $deadlineChanged = ! $this->meeting?->exists || $this->meeting->deadline->toDateString() !== $this->deadline;
+
         $this->validate([
             'title' => ['required', 'string', 'max:120'],
             'description' => ['nullable', 'string', 'max:2000'],
             'location' => ['nullable', 'string', 'max:255'],
-            'rangeStart' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.$today],
+            'rangeStart' => ['required', 'date_format:Y-m-d', ...($startChanged ? ['after_or_equal:'.$today] : [])],
             'rangeEnd' => ['required', 'date_format:Y-m-d', 'after_or_equal:rangeStart'],
-            'deadline' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.$today, 'before_or_equal:rangeEnd'],
+            'deadline' => ['required', 'date_format:Y-m-d', ...($deadlineChanged ? ['after_or_equal:'.$today] : []), 'before_or_equal:rangeEnd'],
         ]);
 
         if (Carbon::parse($this->rangeStart)->diffInDays(Carbon::parse($this->rangeEnd)) + 1 > self::MaxRangeDays) {

@@ -104,3 +104,23 @@ test('members cannot create or edit, outsiders get a 404', function () {
     $this->actingAs($this->member)->get(route('meetings.edit', $meeting))->assertForbidden();
     $this->actingAs(User::factory()->create())->get(route('meetings.create', $this->group))->assertNotFound();
 });
+
+test('a request whose range has started can still be edited', function () {
+    $meeting = Meeting::factory()->for($this->group)->create(['range_start' => '2026-10-30', 'range_end' => '2026-11-20', 'deadline' => '2026-11-01']);
+    AvailabilityDay::factory()->for($meeting)->for($this->member)->cells(str_repeat('p', 28))->create(['day' => '2026-10-31']);
+
+    Livewire::actingAs($this->organizer)
+        ->test(Form::class, ['meeting' => $meeting])
+        ->set('title', 'Titre corrigé')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($meeting->refresh()->title)->toBe('Titre corrigé')
+        ->and(AvailabilityDay::count())->toBe(1);
+
+    Livewire::actingAs($this->organizer)
+        ->test(Form::class, ['meeting' => $meeting])
+        ->set('rangeStart', '2026-10-31')
+        ->call('save')
+        ->assertHasErrors('rangeStart');
+});
