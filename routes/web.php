@@ -27,6 +27,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', Dashboard::class)->name('dashboard');
     Route::livewire('groups/{group}', GroupsShow::class)->name('groups.show');
     Route::livewire('groups/{group}/meetings/create', MeetingsForm::class)->name('meetings.create');
+    Route::livewire('meetings/{meeting}/edit', MeetingsForm::class)->name('meetings.edit');
     Route::livewire('meetings/{meeting}', MeetingsShow::class)->name('meetings.show');
 });
 

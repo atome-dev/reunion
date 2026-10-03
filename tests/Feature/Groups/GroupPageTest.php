@@ -97,3 +97,15 @@ test('a member removed while the page is open loses access on the next request',
 
     $component->call('$refresh')->assertNotFound();
 });
+
+test('the group page lists requests with their state', function () {
+    Meeting::factory()->for($this->group)->create(['title' => 'Demande en collecte']);
+    Meeting::factory()->for($this->group)->confirmed(now()->addWeek())->create(['title' => 'Réunion confirmée']);
+
+    $this->actingAs($this->member)
+        ->get(route('groups.show', $this->group))
+        ->assertSee('Demande en collecte')
+        ->assertSee(__('Collecting availabilities'))
+        ->assertSee('Réunion confirmée')
+        ->assertSee(__('Confirmed'));
+});

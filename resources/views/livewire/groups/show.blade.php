@@ -7,7 +7,7 @@
 
         <div class="flex flex-wrap gap-2">
             @if ($this->isOrganizer())
-                <flux:button variant="primary" icon="plus" :href="route('meetings.create', $group)" wire:navigate>{{ __('New meeting') }}</flux:button>
+                <flux:button variant="primary" icon="plus" :href="route('meetings.create', $group)" wire:navigate>{{ __('New request') }}</flux:button>
                 <flux:dropdown align="end">
                     <flux:button icon="ellipsis-horizontal" :aria-label="__('Group actions')" />
                     <flux:menu>
@@ -24,13 +24,21 @@
     </header>
 
     <section class="flex flex-col gap-4">
-        <flux:heading size="lg" level="2">{{ __('Upcoming meetings') }}</flux:heading>
+        <flux:heading size="lg" level="2">{{ __('Meetings') }}</flux:heading>
         @forelse ($this->upcomingMeetings as $meeting)
-            @php($answers = $meeting->respondentIds()->count())
-            <a wire:key="meeting-{{ $meeting->id }}" href="{{ route('meetings.show', $meeting) }}" wire:navigate class="group/card block">
+                        <a wire:key="meeting-{{ $meeting->id }}" href="{{ route('meetings.show', $meeting) }}" wire:navigate class="group/card block">
                 <flux:card class="flex flex-wrap items-center justify-between gap-4 transition group-hover/card:border-forest! dark:group-hover/card:border-sun!">
-                    <flux:heading>{{ $meeting->title }}</flux:heading>
-                    <flux:badge size="sm">{{ trans_choice(':count answer|:count answers', $answers) }}</flux:badge>
+                    <div>
+                        <flux:heading>{{ $meeting->title }}</flux:heading>
+                        <flux:text>
+                            @if ($meeting->status === \App\Enums\MeetingStatus::Confirmed)
+                                {{ ucfirst($meeting->confirmed_starts_at->copy()->setTimezone(config('app.display_timezone'))->translatedFormat('l j F · H\hi')) }}
+                            @else
+                                {{ __('Answer before :date', ['date' => $meeting->deadline->translatedFormat('j F')]) }} · {{ trans_choice(':count answer|:count answers', $meeting->respondentIds()->count()) }}
+                            @endif
+                        </flux:text>
+                    </div>
+                    <flux:badge size="sm" :color="match ($meeting->status) { \App\Enums\MeetingStatus::Confirmed => 'green', \App\Enums\MeetingStatus::Voting => 'blue', default => 'yellow' }">{{ $meeting->status->label() }}</flux:badge>
                 </flux:card>
             </a>
         @empty
