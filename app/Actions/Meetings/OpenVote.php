@@ -1,0 +1,41 @@
+<?php
+
+namespace App\Actions\Meetings;
+
+use App\Enums\MeetingStatus;
+use App\Exceptions\InvalidMeetingTransition;
+use App\Models\Meeting;
+use App\Notifications\VoteOpenedNotification;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+
+class OpenVote
+{
+    /**
+     * @param  list<array{0: CarbonInterface, 1: CarbonInterface}>  $slots  start and end of each slot, in UTC
+     */
+    public function __invoke(Meeting $meeting, array $slots): void
+    {
+        $distinct = collect($slots)->unique(fn (array $slot): string => $slot[0]->getTimestamp().'-'.$slot[1]->getTimestamp());
+
+        if ($meeting->status !== MeetingStatus::Collecting || $distinct->count() < 2) {
+            throw new InvalidMeetingTransition(__('Choose at least two different slots to open a vote.'));
+        }
+
+        DB::transaction(function () use ($meeting, $distinct): void {
+            $meeting->slots()->delete();
+
+            foreach ($distinct as [$startsAt, $endsAt]) {
+                $meeting->slots()->create(['starts_at' => $startsAt, 'ends_at' => $endsAt]);
+            }
+
+            $meeting->forceFill(['status' => MeetingStatus::Voting])->save();
+        });
+
+        Notification::send(
+            $meeting->group->members()->whereKeyNot($meeting->created_by)->get(),
+            new VoteOpenedNotification($meeting),
+        );
+    }
+}
