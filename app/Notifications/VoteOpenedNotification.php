@@ -13,7 +13,7 @@ class VoteOpenedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $mail = (new MailMessage)
-            ->subject(__('Vote for the date of :title', ['title' => $this->meeting->title]))
+            ->subject(__('Vote open: :title', ['title' => $this->meeting->title]))
             ->line(__('The organizer of :group proposes these slots:', ['group' => $this->meeting->group->name]));
 
         foreach ($this->meeting->slots as $slot) {

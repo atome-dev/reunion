@@ -9,6 +9,7 @@ use App\Models\GroupInvitation;
 use App\Models\Meeting;
 use App\Models\User;
 use Flux\Flux;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -36,6 +37,11 @@ class Show extends Component
     public function hydrate(): void
     {
         $this->authorize('view', $this->group);
+    }
+
+    public function render(): View
+    {
+        return view('livewire.groups.show')->title($this->group->name);
     }
 
     public function rename(): void

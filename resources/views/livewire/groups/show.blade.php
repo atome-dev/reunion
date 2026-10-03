@@ -33,6 +33,8 @@
                         <flux:text>
                             @if ($meeting->status === \App\Enums\MeetingStatus::Confirmed)
                                 {{ ucfirst($meeting->confirmed_starts_at->copy()->setTimezone(config('app.display_timezone'))->translatedFormat('l j F · H\hi')) }}
+                            @elseif ($meeting->status === \App\Enums\MeetingStatus::Voting)
+                                {{ __('Vote in progress') }}
                             @else
                                 {{ __('Answer before :date', ['date' => $meeting->deadline->translatedFormat('j F')]) }} · {{ trans_choice(':count answer|:count answers', $meeting->respondentIds()->count()) }}
                             @endif

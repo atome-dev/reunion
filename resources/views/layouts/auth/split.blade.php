@@ -19,7 +19,34 @@
                     <p class="max-w-md text-5xl leading-[1] font-extrabold tracking-[-0.03em] text-balance">
                         Réunir tout le monde, sans le <span class="dark:text-sun">casse-tête.</span>
                     </p>
-                    <x-demo-poll compact class="max-w-lg -rotate-1 shadow-[0_24px_50px_-24px_rgba(18,61,47,0.5)]" />
+                    @php
+                        $days = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.'];
+                        $grid = ['pppp00', 'dddddd', 'ppdddd', '00pppp', 'pppppp'];
+                    @endphp
+                    <div class="max-w-lg -rotate-1 rounded-2xl bg-white p-5 text-forest shadow-[0_24px_50px_-24px_rgba(18,61,47,0.5)] dark:bg-night dark:text-milk dark:ring-1 dark:ring-white/10">
+                        <p class="sr-only">Exemple fictif : une grille de disponibilités où chacun colorie ses créneaux, sur place ou à distance.</p>
+                        <div aria-hidden="true">
+                            <h2 class="mb-3 text-lg font-bold">Mes disponibilités</h2>
+                            <div class="grid grid-cols-[2.5rem_repeat(5,minmax(0,1fr))] gap-1.5 text-center text-xs font-semibold">
+                                <span></span>
+                                @foreach ($days as $day)
+                                    <span>{{ $day }}</span>
+                                @endforeach
+                                @foreach (range(0, 5) as $cell)
+                                    <span class="self-center text-right opacity-70">{{ 18 + intdiv($cell, 2) }}h{{ $cell % 2 ? '30' : '' }}</span>
+                                    @foreach ($grid as $cells)
+                                        @php($state = $cells[$cell])
+                                        <span @class(['h-6 rounded-md', 'bg-forest/10 dark:bg-white/10' => $state === '0', 'bg-forest dark:bg-sun' => $state === 'p', 'bg-blush' => $state === 'd'])></span>
+                                    @endforeach
+                                @endforeach
+                            </div>
+                            <p class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-semibold">
+                                <span class="inline-flex items-center gap-1.5"><span class="size-3 rounded-sm bg-forest dark:bg-sun"></span>Sur place</span>
+                                <span class="inline-flex items-center gap-1.5"><span class="size-3 rounded-sm bg-blush"></span>À distance</span>
+                                <span class="ms-auto font-normal opacity-75">Exemple fictif.</span>
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </aside>
 

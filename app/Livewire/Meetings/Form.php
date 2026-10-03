@@ -6,6 +6,7 @@ use App\Enums\MeetingStatus;
 use App\Models\Group;
 use App\Models\Meeting;
 use App\Notifications\MeetingRequestedNotification;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +58,11 @@ class Form extends Component
     public function hydrate(): void
     {
         $this->meeting?->exists ? $this->authorizeEditing($this->meeting) : $this->authorize('manage', $this->group);
+    }
+
+    public function render(): View
+    {
+        return view('livewire.meetings.form')->title($this->meeting?->exists ? __('Edit the request') : __('New request'));
     }
 
     public function save(): void

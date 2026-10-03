@@ -47,6 +47,8 @@
             <flux:text size="sm">
                 @if ($window['onSite']) <span class="font-semibold">{{ __('On site') }} :</span> {{ collect($window['onSite'])->map(fn ($id) => $membersById[$id]->name)->join(', ') }}. @endif
                 @if ($window['remote']) <span class="font-semibold">{{ __('Remote') }} :</span> {{ collect($window['remote'])->map(fn ($id) => $membersById[$id]->name)->join(', ') }}. @endif
+                @php($absentNames = $this->members->reject(fn ($member) => in_array($member->id, [...$window['onSite'], ...$window['remote']], true))->pluck('name'))
+                @if ($absentNames->isNotEmpty()) <span class="font-semibold">{{ __('Absent') }} :</span> {{ $absentNames->join(', ') }}. @endif
             </flux:text>
 
             <div class="flex flex-wrap items-end gap-3">

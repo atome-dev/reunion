@@ -31,7 +31,7 @@
             <flux:card class="p-0!">
                 <flux:table>
                     <flux:table.columns>
-                        <flux:table.column>{{ __('Slot') }}</flux:table.column>
+                        <flux:table.column class="ps-4!">{{ __('Slot') }}</flux:table.column>
                         <flux:table.column align="center">{{ __('On site') }}</flux:table.column>
                         <flux:table.column align="center">{{ __('Remote') }}</flux:table.column>
                         <flux:table.column><span class="sr-only">{{ __('Actions') }}</span></flux:table.column>
@@ -39,7 +39,7 @@
                     <flux:table.rows>
                         @foreach ($this->proposedSlots as $slot)
                             <flux:table.row :key="'result-'.$slot->id">
-                                <flux:table.cell variant="strong">
+                                <flux:table.cell variant="strong" class="ps-4!">
                                     {{ ucfirst($slot->startsAtLocal()->translatedFormat('l j F · H\hi')) }}
                                     @if ($slot->id === $this->bestSlotId) <flux:badge size="sm" color="yellow" class="ms-2">{{ __('Best date') }}</flux:badge> @endif
                                 </flux:table.cell>

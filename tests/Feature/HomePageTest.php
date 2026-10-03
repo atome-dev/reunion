@@ -29,11 +29,13 @@ test('demo poll prefers more people on site when totals are tied', function () {
     expect($poll->bestDateIndex())->toBe(1);
 });
 
-test('auth pages use the branded layout with the compact demo poll', function () {
+test('auth pages use the branded layout with the decorative availability grid', function () {
     $this->get(route('login'))
         ->assertOk()
         ->assertSee(__('Log in to your account'))
-        ->assertSee('Jardin partagé des Lilas')
+        ->assertSee('Mes disponibilités')
+        ->assertSee('Exemple fictif')
+        ->assertDontSee('Jardin partagé des Lilas')
         ->assertDontSee('data-you="0"', escape: false);
 });
 

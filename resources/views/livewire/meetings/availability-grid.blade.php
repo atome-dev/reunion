@@ -12,7 +12,8 @@
         </div>
         <flux:text size="sm">
             {{ trans_choice(':count person has answered|:count people have answered', $this->respondentCount) }} {{ __('out of :total', ['total' => $this->memberCount]) }}
-            · <span role="status" aria-live="polite" class="inline-flex items-center gap-2">
+            <span x-show="status !== 'idle'" x-cloak>·</span>
+            <span role="status" aria-live="polite" class="inline-flex items-center gap-2">
                 <span x-show="status === 'saving'" x-cloak>{{ __('Saving…') }}</span>
                 <span x-show="status === 'saved'" x-cloak>{{ __('Saved') }}</span>
                 <span x-show="status === 'error'" x-cloak class="text-red-600 dark:text-red-400">{{ $errors->first('days') ?: __('Not saved, try again') }}</span>
