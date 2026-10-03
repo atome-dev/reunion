@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Actions\Groups\CreateGroup;
 use App\Enums\MeetingStatus;
+use App\Models\AvailabilityDay;
 use App\Models\Group;
 use App\Models\Meeting;
 use Illuminate\Database\Eloquent\Builder;
@@ -61,6 +62,7 @@ class Dashboard extends Component
                         ->selectRaw('1')
                         ->from('availability_days')
                         ->where('availability_days.user_id', $userId)
+                        ->where('availability_days.cells', '!=', AvailabilityDay::Empty)
                         ->whereRaw('availability_days.day >= date(meetings.range_start)')
                         ->whereRaw('availability_days.day <= date(meetings.range_end)')))
                 ->orWhere(fn (Builder $voting) => $voting

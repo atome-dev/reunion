@@ -68,6 +68,18 @@ test('the dashboard lists my groups and only the upcoming meetings I have not an
         ->assertDontSee('Réunion d\'un autre groupe');
 });
 
+test('an all-empty row in range does not count as an answer', function () {
+    $user = User::factory()->create();
+    $group = Group::factory()->create();
+    $group->addMember($user);
+    $meeting = Meeting::factory()->for($group)->create(['title' => 'Toujours à répondre']);
+    AvailabilityDay::factory()->for($user)->create(['day' => $meeting->range_start->toDateString()]);
+
+    $pending = Livewire::actingAs($user)->test(Dashboard::class)->instance()->pendingMeetings;
+
+    expect($pending->pluck('id')->all())->toBe([$meeting->id]);
+});
+
 test('pending answers include grids to fill and votes to complete, confirmed meetings are listed', function () {
     $user = User::factory()->create();
     $group = Group::factory()->create();
