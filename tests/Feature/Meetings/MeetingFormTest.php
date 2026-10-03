@@ -124,3 +124,27 @@ test('a request whose range has started can still be edited', function () {
         ->call('save')
         ->assertHasErrors('rangeStart');
 });
+
+test('a request cannot end more than three months ahead', function () {
+    fillRequest(Livewire::actingAs($this->organizer)->test(Form::class, ['group' => $this->group]), [
+        'rangeStart' => '2027-01-20',
+        'rangeEnd' => '2027-02-03',
+        'deadline' => '2027-01-15',
+    ])->call('save')->assertHasErrors('rangeEnd');
+
+    fillRequest(Livewire::actingAs($this->organizer)->test(Form::class, ['group' => $this->group]), [
+        'rangeStart' => '2027-01-20',
+        'rangeEnd' => '2027-02-02',
+        'deadline' => '2027-01-15',
+    ])->call('save')->assertHasNoErrors();
+});
+
+test('an unchanged end is not checked again when editing', function () {
+    $meeting = Meeting::factory()->for($this->group)->create(['range_start' => '2027-01-20', 'range_end' => '2027-02-02', 'deadline' => '2027-01-15']);
+    $this->travelTo(now('Europe/Paris')->setDate(2026, 10, 25)->setTime(10, 0));
+
+    Livewire::actingAs($this->organizer)->test(Form::class, ['meeting' => $meeting])
+        ->set('title', 'Nouveau titre')
+        ->call('save')
+        ->assertHasNoErrors();
+});

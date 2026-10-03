@@ -3,6 +3,7 @@
 namespace App\Livewire\Meetings;
 
 use App\Enums\MeetingStatus;
+use App\Models\AvailabilityDay;
 use App\Models\Group;
 use App\Models\Meeting;
 use App\Notifications\MeetingRequestedNotification;
@@ -70,6 +71,7 @@ class Form extends Component
         $today = today(config('app.display_timezone'))->toDateString();
 
         $startChanged = ! $this->meeting?->exists || $this->meeting->range_start->toDateString() !== $this->rangeStart;
+        $endChanged = ! $this->meeting?->exists || $this->meeting->range_end->toDateString() !== $this->rangeEnd;
         $deadlineChanged = ! $this->meeting?->exists || $this->meeting->deadline->toDateString() !== $this->deadline;
 
         $this->validate([
@@ -77,8 +79,10 @@ class Form extends Component
             'description' => ['nullable', 'string', 'max:2000'],
             'location' => ['nullable', 'string', 'max:255'],
             'rangeStart' => ['required', 'date_format:Y-m-d', ...($startChanged ? ['after_or_equal:'.$today] : [])],
-            'rangeEnd' => ['required', 'date_format:Y-m-d', 'after_or_equal:rangeStart'],
+            'rangeEnd' => ['required', 'date_format:Y-m-d', 'after_or_equal:rangeStart', ...($endChanged ? ['before_or_equal:'.AvailabilityDay::lastEditableDay()->toDateString()] : [])],
             'deadline' => ['required', 'date_format:Y-m-d', ...($deadlineChanged ? ['after_or_equal:'.$today] : []), 'before_or_equal:rangeEnd'],
+        ], [
+            'rangeEnd.before_or_equal' => __('The request must end within three months.'),
         ]);
 
         if (Carbon::parse($this->rangeStart)->diffInDays(Carbon::parse($this->rangeEnd)) + 1 > self::MaxRangeDays) {
