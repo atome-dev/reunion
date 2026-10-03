@@ -70,9 +70,10 @@
                         style="touch-action: pan-y;"
                         x-bind:class="{
                             'max-sm:hidden': index !== mobileDay,
-                            'bg-zinc-100 dark:bg-white/5': !day.inRange,
-                            'bg-forest dark:bg-sun': day.inRange && value(day.date, {{ $cell }}) === 'p',
-                            'bg-blush': day.inRange && value(day.date, {{ $cell }}) === 'd',
+                            'bg-zinc-100 dark:bg-white/5': !day.inRange && value(day.date, {{ $cell }}) === '0',
+                            'opacity-40': !day.inRange && value(day.date, {{ $cell }}) !== '0',
+                            'bg-forest dark:bg-sun': value(day.date, {{ $cell }}) === 'p',
+                            'bg-blush': value(day.date, {{ $cell }}) === 'd',
                             'bg-white dark:bg-night': day.inRange && value(day.date, {{ $cell }}) === '0',
                         }"></button>
                 </template>
