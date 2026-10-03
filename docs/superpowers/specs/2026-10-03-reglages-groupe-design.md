@@ -16,6 +16,7 @@ Date : 2026-10-03 · Branche : `feature/reglages-groupe` (depuis `main` e8db823)
 ## Vocabulaire
 
 - **Créateur du groupe** : `groups.owner_id` (`Group::isOrganizer()`, renommé `Group::isCreator()` dans le code ; libellé UI « Créateur du groupe »). Pas d'autre rôle d'administration.
+- Règle à préserver : le créateur du groupe en est automatiquement membre (ajouté à la création par `CreateGroup`), ne peut pas le quitter ni en être retiré. Un test le vérifie déjà ; aucune tâche ne doit la casser.
 - **Auteur d'une demande** : `meetings.created_by` (`Meeting::creator()`).
 
 ## Données
