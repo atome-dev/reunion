@@ -90,3 +90,28 @@ test('members cannot see the summary, outsiders get a 404', function () {
     Livewire::actingAs($this->amina)->test(Summary::class, ['meeting' => $this->meeting])->assertForbidden();
     Livewire::actingAs(User::factory()->create())->test(Summary::class, ['meeting' => $this->meeting])->assertNotFound();
 });
+
+test('settings coming from the query string are clamped', function () {
+    $component = Livewire::withQueryParams(['duration' => 0, 'min' => 1, 'on_site' => 5])
+        ->actingAs($this->organizer)
+        ->test(Summary::class, ['meeting' => $this->meeting]);
+
+    expect($component->get('duration'))->toBe(30)
+        ->and($component->get('minOnSite'))->toBe(1);
+
+    $component = Livewire::withQueryParams(['duration' => 9999])
+        ->actingAs($this->organizer)
+        ->test(Summary::class, ['meeting' => $this->meeting]);
+
+    expect($component->get('duration'))->toBe(480);
+});
+
+test('emptying a setting falls back to its default', function () {
+    Livewire::actingAs($this->organizer)
+        ->test(Summary::class, ['meeting' => $this->meeting])
+        ->set('minParticipants', '')
+        ->set('minOnSite', '')
+        ->assertHasNoErrors()
+        ->assertSet('minParticipants', 1)
+        ->assertSet('minOnSite', 0);
+});

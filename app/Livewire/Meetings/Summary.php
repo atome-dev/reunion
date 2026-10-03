@@ -21,13 +21,13 @@ class Summary extends Component
     public Meeting $meeting;
 
     #[Url]
-    public int $duration = 120;
+    public ?int $duration = 120;
 
     #[Url(as: 'min')]
-    public int $minParticipants = 1;
+    public ?int $minParticipants = 1;
 
     #[Url(as: 'on_site')]
-    public int $minOnSite = 0;
+    public ?int $minOnSite = 0;
 
     /** @var list<string> */
     public array $selected = [];
@@ -40,6 +40,7 @@ class Summary extends Component
         $this->authorize('manage', $meeting);
 
         $this->meeting = $meeting;
+        $this->normalizeSettings();
     }
 
     public function hydrate(): void
@@ -53,11 +54,19 @@ class Summary extends Component
             return;
         }
 
-        $this->duration = max(30, min(480, intdiv($this->duration, 30) * 30));
-        $this->minParticipants = max(1, $this->minParticipants);
-        $this->minOnSite = max(0, min($this->minOnSite, $this->minParticipants));
+        $this->normalizeSettings();
         $this->selected = [];
         unset($this->windows);
+    }
+
+    /**
+     * Bring the settings (possibly empty or coming from the query string) back within their bounds.
+     */
+    private function normalizeSettings(): void
+    {
+        $this->duration = max(30, min(480, intdiv($this->duration ?? 120, 30) * 30));
+        $this->minParticipants = max(1, $this->minParticipants ?? 1);
+        $this->minOnSite = max(0, min($this->minOnSite ?? 0, $this->minParticipants));
     }
 
     public function confirmWindow(string $key, ConfirmMeeting $confirmMeeting): void
