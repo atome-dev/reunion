@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Actions\Groups\CreateGroup;
+use App\Enums\MeetingStatus;
 use App\Models\Group;
 use App\Models\Meeting;
 use Illuminate\Database\Eloquent\Builder;
@@ -36,7 +37,7 @@ class Dashboard extends Component
     {
         return Auth::user()->groups()
             ->withCount('members')
-            ->with(['meetings' => fn ($query) => $query->upcoming()->with('slots')])
+            ->with(['meetings' => fn ($query) => $query->upcoming()])
             ->get();
     }
 
@@ -53,8 +54,9 @@ class Dashboard extends Component
         return Meeting::query()
             ->upcoming()
             ->whereHas('group.members', fn (Builder $members) => $members->whereKey($userId))
-            ->whereDoesntHave('slots.availabilities', fn (Builder $answers) => $answers->where('user_id', $userId))
-            ->with(['group', 'slots'])
+            ->where('status', MeetingStatus::Collecting->value)
+            ->whereDoesntHave('availabilityDays', fn (Builder $days) => $days->where('user_id', $userId))
+            ->with('group')
             ->get();
     }
 }

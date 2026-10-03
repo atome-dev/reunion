@@ -1,11 +1,9 @@
 <?php
 
-use App\Enums\AvailabilityStatus;
 use App\Livewire\Dashboard;
-use App\Models\Availability;
+use App\Models\AvailabilityDay;
 use App\Models\Group;
 use App\Models\Meeting;
-use App\Models\MeetingSlot;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -53,15 +51,11 @@ test('the dashboard lists my groups and only the upcoming meetings I have not an
     $user = User::factory()->create();
     $group = Group::factory()->create(['name' => 'Jardin partagé']);
     $group->addMember($user);
-    $toAnswer = Meeting::factory()->for($group)->create(['title' => 'Assemblée à répondre']);
-    MeetingSlot::factory()->for($toAnswer)->create(['starts_at' => now()->addWeek()]);
+    Meeting::factory()->for($group)->create(['title' => 'Assemblée à répondre']);
     $answered = Meeting::factory()->for($group)->create(['title' => 'Réunion déjà répondue']);
-    $slot = MeetingSlot::factory()->for($answered)->create(['starts_at' => now()->addWeek()]);
-    Availability::factory()->for($slot, 'slot')->for($user)->create(['status' => AvailabilityStatus::Remote]);
-    $past = Meeting::factory()->for($group)->create(['title' => 'Réunion passée']);
-    MeetingSlot::factory()->for($past)->create(['starts_at' => now()->subWeek()]);
-    $otherGroup = Meeting::factory()->create(['title' => 'Réunion d\'un autre groupe']);
-    MeetingSlot::factory()->for($otherGroup)->create(['starts_at' => now()->addWeek()]);
+    AvailabilityDay::factory()->for($answered)->for($user)->cells(str_repeat('p', 28))->create();
+    Meeting::factory()->for($group)->confirmed(now()->subWeek())->create(['title' => 'Réunion passée']);
+    Meeting::factory()->create(['title' => 'Réunion d\'un autre groupe']);
 
     $this->actingAs($user)
         ->get(route('dashboard'))

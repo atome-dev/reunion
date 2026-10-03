@@ -143,7 +143,7 @@ class Show extends Component
     #[Computed]
     public function upcomingMeetings(): Collection
     {
-        return $this->group->meetings()->upcoming()->with('slots.availabilities')->get();
+        return $this->group->meetings()->upcoming()->latest()->get();
     }
 
     /**
@@ -152,6 +152,6 @@ class Show extends Component
     #[Computed]
     public function pastMeetings(): Collection
     {
-        return $this->group->meetings()->past()->with('slots')->latest()->get();
+        return $this->group->meetings()->past()->latest('confirmed_starts_at')->get();
     }
 }

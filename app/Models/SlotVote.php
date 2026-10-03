@@ -3,22 +3,24 @@
 namespace App\Models;
 
 use App\Enums\AvailabilityStatus;
-use Database\Factories\AvailabilityFactory;
+use Database\Factories\SlotVoteFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
+ * A member's answer to one of the slots put to a vote.
+ *
  * @property int $id
  * @property int $meeting_slot_id
  * @property int $user_id
  * @property AvailabilityStatus $status
  */
 #[Fillable(['status'])]
-class Availability extends Model
+class SlotVote extends Model
 {
-    /** @use HasFactory<AvailabilityFactory> */
+    /** @use HasFactory<SlotVoteFactory> */
     use HasFactory;
 
     protected function casts(): array

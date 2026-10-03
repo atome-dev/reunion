@@ -29,10 +29,13 @@ test('only the organizer manages, a member gets a 403 and an outsider a 404', fu
         ->and(Gate::forUser($this->outsider)->inspect('manage', $this->group)->status())->toBe(404);
 });
 
-test('members respond, outsiders cannot', function () {
-    expect(Gate::forUser($this->member)->allows('respond', $this->meeting))->toBeTrue()
-        ->and(Gate::forUser($this->organizer)->allows('respond', $this->meeting))->toBeTrue()
-        ->and(Gate::forUser($this->outsider)->allows('respond', $this->meeting))->toBeFalse();
+test('only members can fill a grid or vote', function () {
+    $voting = Meeting::factory()->for($this->group)->voting()->create();
+
+    expect(Gate::forUser($this->member)->allows('editAvailability', $this->meeting))->toBeTrue()
+        ->and(Gate::forUser($this->member)->allows('vote', $voting))->toBeTrue()
+        ->and(Gate::forUser($this->outsider)->allows('editAvailability', $this->meeting))->toBeFalse()
+        ->and(Gate::forUser($this->outsider)->allows('vote', $voting))->toBeFalse();
 });
 
 test('a member can leave but the organizer cannot', function () {

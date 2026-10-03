@@ -15,8 +15,9 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $meeting_id
  * @property Carbon $starts_at
+ * @property Carbon $ends_at
  */
-#[Fillable(['starts_at'])]
+#[Fillable(['starts_at', 'ends_at'])]
 class MeetingSlot extends Model
 {
     /** @use HasFactory<MeetingSlotFactory> */
@@ -26,6 +27,7 @@ class MeetingSlot extends Model
     {
         return [
             'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
         ];
     }
 
@@ -35,14 +37,19 @@ class MeetingSlot extends Model
         return $this->belongsTo(Meeting::class);
     }
 
-    /** @return HasMany<Availability, $this> */
-    public function availabilities(): HasMany
+    /** @return HasMany<SlotVote, $this> */
+    public function votes(): HasMany
     {
-        return $this->hasMany(Availability::class);
+        return $this->hasMany(SlotVote::class);
     }
 
     public function startsAtLocal(): CarbonInterface
     {
         return $this->starts_at->copy()->setTimezone(config('app.display_timezone'));
+    }
+
+    public function endsAtLocal(): CarbonInterface
+    {
+        return $this->ends_at->copy()->setTimezone(config('app.display_timezone'));
     }
 }

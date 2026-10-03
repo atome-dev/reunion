@@ -6,7 +6,7 @@
                 <flux:card wire:key="pending-{{ $meeting->id }}" class="flex flex-wrap items-center justify-between gap-4 bg-sun/40! dark:bg-sun/10!">
                     <div>
                         <flux:heading>{{ $meeting->title }}</flux:heading>
-                        <flux:text>{{ $meeting->group->name }} · {{ trans_choice(':count date|:count dates', $meeting->slots->count()) }}</flux:text>
+                        <flux:text>{{ $meeting->group->name }} · {{ __('Answer before :date', ['date' => $meeting->deadline->translatedFormat('j F')]) }}</flux:text>
                     </div>
                     <flux:button variant="primary" :href="route('meetings.show', $meeting)" wire:navigate>{{ __('Answer') }}</flux:button>
                 </flux:card>
@@ -25,7 +25,7 @@
         </div>
 
         @forelse ($this->groups as $group)
-            @php($nextMeeting = $group->meetings->sortBy(fn ($meeting) => $meeting->slots->first()?->starts_at)->first())
+            @php($nextMeeting = $group->meetings->first())
             <a wire:key="group-{{ $group->id }}" href="{{ route('groups.show', $group) }}" wire:navigate class="group/card block">
                 <flux:card class="flex flex-wrap items-center justify-between gap-4 transition group-hover/card:border-forest! dark:group-hover/card:border-sun!">
                     <div>

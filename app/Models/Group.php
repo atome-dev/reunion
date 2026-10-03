@@ -62,16 +62,18 @@ class Group extends Model
     }
 
     /**
-     * Remove a member along with the answers they gave to this group's meetings.
+     * Remove a member along with their availabilities and votes on this group's meetings.
      */
     public function removeMember(User $user): void
     {
-        Availability::query()
+        $meetingIds = $this->meetings()->pluck('id');
+
+        SlotVote::query()
             ->where('user_id', $user->id)
-            ->whereIn('meeting_slot_id', MeetingSlot::query()->select('meeting_slots.id')
-                ->join('meetings', 'meetings.id', '=', 'meeting_slots.meeting_id')
-                ->where('meetings.group_id', $this->id))
+            ->whereIn('meeting_slot_id', MeetingSlot::query()->select('id')->whereIn('meeting_id', $meetingIds))
             ->delete();
+
+        AvailabilityDay::query()->where('user_id', $user->id)->whereIn('meeting_id', $meetingIds)->delete();
 
         $this->members()->detach($user->id);
     }

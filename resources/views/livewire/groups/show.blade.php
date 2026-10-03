@@ -26,7 +26,7 @@
     <section class="flex flex-col gap-4">
         <flux:heading size="lg" level="2">{{ __('Upcoming meetings') }}</flux:heading>
         @forelse ($this->upcomingMeetings as $meeting)
-            @php($answers = $meeting->slots->flatMap->availabilities->pluck('user_id')->unique()->count())
+            @php($answers = $meeting->respondentIds()->count())
             <a wire:key="meeting-{{ $meeting->id }}" href="{{ route('meetings.show', $meeting) }}" wire:navigate class="group/card block">
                 <flux:card class="flex flex-wrap items-center justify-between gap-4 transition group-hover/card:border-forest! dark:group-hover/card:border-sun!">
                     <flux:heading>{{ $meeting->title }}</flux:heading>

@@ -3,15 +3,15 @@
 namespace Database\Factories;
 
 use App\Enums\AvailabilityStatus;
-use App\Models\Availability;
 use App\Models\MeetingSlot;
+use App\Models\SlotVote;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<Availability>
+ * @extends Factory<SlotVote>
  */
-class AvailabilityFactory extends Factory
+class SlotVoteFactory extends Factory
 {
     /**
      * Define the model's default state.
