@@ -11,11 +11,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * One member's availability for one day of a meeting request: 28 half-hour cells from 8:00 to 22:00,
+ * One user's availability for one day: 28 half-hour cells from 8:00 to 22:00,
  * each "0" (unavailable), "p" (on site) or "d" (remote).
  *
  * @property int $id
- * @property int $meeting_id
  * @property int $user_id
  * @property string $day
  * @property string $cells
@@ -32,10 +31,12 @@ class AvailabilityDay extends Model
 
     public const string Empty = '0000000000000000000000000000';
 
-    /** @return BelongsTo<Meeting, $this> */
-    public function meeting(): BelongsTo
+    /**
+     * The last day a user may fill in: three months from today, in the display timezone.
+     */
+    public static function lastEditableDay(): CarbonImmutable
     {
-        return $this->belongsTo(Meeting::class);
+        return CarbonImmutable::today(config('app.display_timezone'))->addMonthsNoOverflow(3);
     }
 
     /** @return BelongsTo<User, $this> */

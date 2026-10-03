@@ -22,9 +22,9 @@ beforeEach(function () {
     }
     $this->meeting = Meeting::factory()->for($this->group)->create(['range_start' => '2026-10-24', 'range_end' => '2026-10-26', 'deadline' => '2026-10-23']);
     $evening = str_repeat('0', 20).'pppppp00';
-    AvailabilityDay::factory()->for($this->meeting)->for($this->amina)->cells($evening)->create(['day' => '2026-10-25']);
-    AvailabilityDay::factory()->for($this->meeting)->for($this->bastien)->cells(str_repeat('0', 20).'dddddd00')->create(['day' => '2026-10-25']);
-    AvailabilityDay::factory()->for($this->meeting)->for($this->amina)->cells($evening)->create(['day' => '2026-10-26']);
+    AvailabilityDay::factory()->for($this->amina)->cells($evening)->create(['day' => '2026-10-25']);
+    AvailabilityDay::factory()->for($this->bastien)->cells(str_repeat('0', 20).'dddddd00')->create(['day' => '2026-10-25']);
+    AvailabilityDay::factory()->for($this->amina)->cells($evening)->create(['day' => '2026-10-26']);
 });
 
 test('the organizer sees the best windows and who has not answered', function () {

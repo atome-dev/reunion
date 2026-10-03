@@ -75,12 +75,6 @@ class Meeting extends Model
         return $this->hasMany(MeetingSlot::class)->orderBy('starts_at');
     }
 
-    /** @return HasMany<AvailabilityDay, $this> */
-    public function availabilityDays(): HasMany
-    {
-        return $this->hasMany(AvailabilityDay::class);
-    }
-
     /**
      * Requests still in progress, or confirmed for a date ahead.
      *
@@ -119,7 +113,7 @@ class Meeting extends Model
     }
 
     /**
-     * Cells of the group's current members, keyed by member id then day.
+     * Personal cells of the group's current members within the range, keyed by member id then day.
      *
      * @return array<int, array<string, string>>
      */
@@ -127,8 +121,10 @@ class Meeting extends Model
     {
         $memberIds = $this->group->members()->pluck('users.id');
 
-        return $this->availabilityDays()
+        return AvailabilityDay::query()
             ->whereIn('user_id', $memberIds)
+            ->whereBetween('day', [$this->range_start->toDateString(), $this->range_end->toDateString()])
+            ->where('cells', '!=', AvailabilityDay::Empty)
             ->orderBy('day')
             ->get()
             ->groupBy('user_id')

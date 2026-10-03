@@ -49,7 +49,7 @@ class AvailabilityGrid extends Component
 
         DB::transaction(function () use ($days): void {
             foreach ($days as $day => $cells) {
-                $query = AvailabilityDay::query()->where('meeting_id', $this->meeting->id)->where('user_id', Auth::id())->where('day', $day);
+                $query = AvailabilityDay::query()->where('user_id', Auth::id())->where('day', $day);
 
                 if ($cells === AvailabilityDay::Empty) {
                     $query->delete();
@@ -58,7 +58,7 @@ class AvailabilityGrid extends Component
                 }
 
                 AvailabilityDay::unguarded(fn () => AvailabilityDay::query()->updateOrCreate(
-                    ['meeting_id' => $this->meeting->id, 'user_id' => Auth::id(), 'day' => $day],
+                    ['user_id' => Auth::id(), 'day' => $day],
                     ['cells' => $cells],
                 ));
             }
@@ -83,7 +83,12 @@ class AvailabilityGrid extends Component
     #[Computed]
     public function cells(): array
     {
-        return $this->meeting->availabilityDays()->where('user_id', Auth::id())->orderBy('day')->pluck('cells', 'day')->all();
+        return AvailabilityDay::query()
+            ->where('user_id', Auth::id())
+            ->whereBetween('day', [$this->meeting->range_start->toDateString(), $this->meeting->range_end->toDateString()])
+            ->orderBy('day')
+            ->pluck('cells', 'day')
+            ->all();
     }
 
     /**

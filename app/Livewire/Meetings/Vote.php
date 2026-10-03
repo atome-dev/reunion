@@ -34,7 +34,10 @@ class Vote extends Component
         $this->authorize('view', $meeting);
 
         $this->meeting = $meeting;
-        $grid = $meeting->availabilityDays()->where('user_id', Auth::id())->pluck('cells', 'day');
+        $grid = AvailabilityDay::query()
+            ->where('user_id', Auth::id())
+            ->whereBetween('day', [$meeting->range_start->toDateString(), $meeting->range_end->toDateString()])
+            ->pluck('cells', 'day');
 
         foreach ($this->proposedSlots as $slot) {
             $this->responses[$slot->id] = $slot->votes->firstWhere('user_id', Auth::id())?->status->value

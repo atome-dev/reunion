@@ -43,25 +43,25 @@ test('cells are grouped per current member and day', function () {
     $group->addMember($member);
     $former = User::factory()->create();
     $meeting = Meeting::factory()->for($group)->create(['range_start' => '2026-11-02', 'range_end' => '2026-11-03']);
-    AvailabilityDay::factory()->for($meeting)->for($member)->cells(str_repeat('p', 28))->create(['day' => '2026-11-02']);
-    AvailabilityDay::factory()->for($meeting)->for($former)->cells(str_repeat('d', 28))->create(['day' => '2026-11-02']);
+    AvailabilityDay::factory()->for($member)->cells(str_repeat('p', 28))->create(['day' => '2026-11-02']);
+    AvailabilityDay::factory()->for($former)->cells(str_repeat('d', 28))->create(['day' => '2026-11-02']);
 
     expect($meeting->cellsByMember())->toBe([$member->id => ['2026-11-02' => str_repeat('p', 28)]])
         ->and($meeting->respondentIds()->all())->toBe([$member->id]);
 });
 
-test('removing a member deletes their grid and votes in the group', function () {
+test('removing a member deletes their votes in the group but keeps their availability', function () {
     $group = Group::factory()->create();
     $member = User::factory()->create();
     $group->addMember($member);
     $meeting = Meeting::factory()->for($group)->create();
-    AvailabilityDay::factory()->for($meeting)->for($member)->cells(str_repeat('p', 28))->create();
+    AvailabilityDay::factory()->for($member)->cells(str_repeat('p', 28))->create(['day' => $meeting->range_start->toDateString()]);
     $slot = MeetingSlot::factory()->for($meeting)->create();
     SlotVote::factory()->for($slot, 'slot')->for($member)->create();
 
     $group->removeMember($member);
 
-    expect(AvailabilityDay::count())->toBe(0)->and(SlotVote::count())->toBe(0);
+    expect(AvailabilityDay::where('user_id', $member->id)->count())->toBe(1)->and(SlotVote::count())->toBe(0);
 });
 
 test('upcoming meetings are those not confirmed yet or confirmed in the future', function () {

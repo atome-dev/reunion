@@ -105,10 +105,6 @@ class Form extends Component
 
             $meeting->save();
 
-            $meeting->availabilityDays()
-                ->where(fn ($query) => $query->where('day', '<', $this->rangeStart)->orWhere('day', '>', $this->rangeEnd))
-                ->delete();
-
             return $meeting;
         });
 

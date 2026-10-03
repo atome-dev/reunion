@@ -8,6 +8,7 @@ use App\Models\Group;
 use App\Models\Meeting;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -56,7 +57,12 @@ class Dashboard extends Component
             ->where(fn (Builder $query) => $query
                 ->where(fn (Builder $collecting) => $collecting
                     ->where('status', MeetingStatus::Collecting->value)
-                    ->whereDoesntHave('availabilityDays', fn (Builder $days) => $days->where('user_id', $userId)))
+                    ->whereNotExists(fn (QueryBuilder $days) => $days
+                        ->selectRaw('1')
+                        ->from('availability_days')
+                        ->where('availability_days.user_id', $userId)
+                        ->whereRaw('availability_days.day >= date(meetings.range_start)')
+                        ->whereRaw('availability_days.day <= date(meetings.range_end)')))
                 ->orWhere(fn (Builder $voting) => $voting
                     ->where('status', MeetingStatus::Voting->value)
                     ->whereHas('slots', fn (Builder $slots) => $slots->whereDoesntHave('votes', fn (Builder $votes) => $votes->where('user_id', $userId)))))

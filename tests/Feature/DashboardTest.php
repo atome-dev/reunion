@@ -54,8 +54,8 @@ test('the dashboard lists my groups and only the upcoming meetings I have not an
     $group = Group::factory()->create(['name' => 'Jardin partagé']);
     $group->addMember($user);
     Meeting::factory()->for($group)->create(['title' => 'Assemblée à répondre']);
-    $answered = Meeting::factory()->for($group)->create(['title' => 'Réunion déjà répondue']);
-    AvailabilityDay::factory()->for($answered)->for($user)->cells(str_repeat('p', 28))->create();
+    $answered = Meeting::factory()->for($group)->create(['title' => 'Réunion déjà répondue', 'range_start' => today()->addDays(20)->toDateString(), 'range_end' => today()->addDays(30)->toDateString()]);
+    AvailabilityDay::factory()->for($user)->cells(str_repeat('p', 28))->create(['day' => $answered->range_start->toDateString()]);
     Meeting::factory()->for($group)->confirmed(now()->subWeek())->create(['title' => 'Réunion passée']);
     Meeting::factory()->create(['title' => 'Réunion d\'un autre groupe']);
 

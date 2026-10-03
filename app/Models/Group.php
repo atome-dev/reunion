@@ -63,7 +63,7 @@ class Group extends Model
     }
 
     /**
-     * Remove a member along with their availabilities and votes on this group's meetings.
+     * Remove a member along with their votes on this group's meetings (their availability is personal and kept).
      */
     public function removeMember(User $user): void
     {
@@ -74,8 +74,6 @@ class Group extends Model
                 ->where('user_id', $user->id)
                 ->whereIn('meeting_slot_id', MeetingSlot::query()->select('id')->whereIn('meeting_id', $meetingIds))
                 ->delete();
-
-            AvailabilityDay::query()->where('user_id', $user->id)->whereIn('meeting_id', $meetingIds)->delete();
 
             $this->members()->detach($user->id);
         });

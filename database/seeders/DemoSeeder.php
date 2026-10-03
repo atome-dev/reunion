@@ -41,7 +41,6 @@ class DemoSeeder extends Seeder
                 $cells = str_repeat('0', 20).$patterns[($index + $offset) % count($patterns)].'00';
 
                 $availability = new AvailabilityDay(['cells' => $cells]);
-                $availability->meeting()->associate($meeting);
                 $availability->user()->associate($member);
                 $availability->day = $day;
                 $availability->save();

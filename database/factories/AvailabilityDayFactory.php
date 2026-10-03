@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\AvailabilityDay;
-use App\Models\Meeting;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,9 +19,8 @@ class AvailabilityDayFactory extends Factory
     public function definition(): array
     {
         return [
-            'meeting_id' => Meeting::factory(),
             'user_id' => User::factory(),
-            'day' => fn (array $attributes) => Meeting::find($attributes['meeting_id'])->range_start->toDateString(),
+            'day' => fn () => now(config('app.display_timezone'))->addDay()->toDateString(),
             'cells' => AvailabilityDay::Empty,
         ];
     }

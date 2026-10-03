@@ -24,8 +24,8 @@ beforeEach(function () {
 });
 
 test('answers are prefilled from the grid', function () {
-    AvailabilityDay::factory()->for($this->meeting)->for($this->member)->cells(str_repeat('0', 20).'pppp0000')->create(['day' => '2026-11-02']);
-    AvailabilityDay::factory()->for($this->meeting)->for($this->member)->cells(str_repeat('0', 20).'ppdd0000')->create(['day' => '2026-11-03']);
+    AvailabilityDay::factory()->for($this->member)->cells(str_repeat('0', 20).'pppp0000')->create(['day' => '2026-11-02']);
+    AvailabilityDay::factory()->for($this->member)->cells(str_repeat('0', 20).'ppdd0000')->create(['day' => '2026-11-03']);
 
     Livewire::actingAs($this->member)
         ->test(Vote::class, ['meeting' => $this->meeting])

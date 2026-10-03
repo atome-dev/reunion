@@ -20,7 +20,7 @@ beforeEach(function () {
 
 test('members who have not answered are reminded the day before the deadline, once', function () {
     $meeting = Meeting::factory()->for($this->group)->create(['range_start' => '2026-11-02', 'range_end' => '2026-11-20', 'deadline' => '2026-11-03']);
-    AvailabilityDay::factory()->for($meeting)->for($this->answered)->cells(str_repeat('p', 28))->create(['day' => '2026-11-05']);
+    AvailabilityDay::factory()->for($this->answered)->cells(str_repeat('p', 28))->create(['day' => '2026-11-05']);
 
     $this->artisan('meetings:send-reminders')->assertSuccessful();
     $this->artisan('meetings:send-reminders')->assertSuccessful();

@@ -112,7 +112,7 @@ test('voting twice keeps a single vote per slot', function () {
 
 test('the summary lists the absent members of each window', function () {
     $meeting = Meeting::factory()->for($this->group)->create(['range_start' => '2026-10-24', 'range_end' => '2026-10-26', 'deadline' => '2026-10-23']);
-    AvailabilityDay::factory()->for($meeting)->for($this->organizer)->cells(str_repeat('0', 20).'pppppppp')->create(['day' => '2026-10-25']);
+    AvailabilityDay::factory()->for($this->organizer)->cells(str_repeat('0', 20).'pppppppp')->create(['day' => '2026-10-25']);
 
     Livewire::actingAs($this->organizer)
         ->test(Summary::class, ['meeting' => $meeting])

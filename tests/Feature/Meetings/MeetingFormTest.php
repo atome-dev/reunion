@@ -65,10 +65,10 @@ test('range and deadline are validated', function (array $overrides, string $err
     'missing title' => [['title' => ''], 'title'],
 ]);
 
-test('shrinking the range deletes availabilities outside of it', function () {
+test('shrinking the range keeps personal availabilities', function () {
     $meeting = Meeting::factory()->for($this->group)->create(['range_start' => '2026-11-09', 'range_end' => '2026-11-20', 'deadline' => '2026-11-06']);
-    AvailabilityDay::factory()->for($meeting)->for($this->member)->cells(str_repeat('p', 28))->create(['day' => '2026-11-10']);
-    AvailabilityDay::factory()->for($meeting)->for($this->member)->cells(str_repeat('p', 28))->create(['day' => '2026-11-19']);
+    AvailabilityDay::factory()->for($this->member)->cells(str_repeat('p', 28))->create(['day' => '2026-11-10']);
+    AvailabilityDay::factory()->for($this->member)->cells(str_repeat('p', 28))->create(['day' => '2026-11-19']);
 
     Livewire::actingAs($this->organizer)
         ->test(Form::class, ['meeting' => $meeting])
@@ -77,7 +77,7 @@ test('shrinking the range deletes availabilities outside of it', function () {
         ->call('save')
         ->assertHasNoErrors();
 
-    expect(AvailabilityDay::pluck('day')->all())->toBe(['2026-11-10']);
+    expect(AvailabilityDay::orderBy('day')->pluck('day')->all())->toBe(['2026-11-10', '2026-11-19']);
 });
 
 test('only requests still collecting can be edited', function () {
@@ -107,7 +107,7 @@ test('members cannot create or edit, outsiders get a 404', function () {
 
 test('a request whose range has started can still be edited', function () {
     $meeting = Meeting::factory()->for($this->group)->create(['range_start' => '2026-10-30', 'range_end' => '2026-11-20', 'deadline' => '2026-11-01']);
-    AvailabilityDay::factory()->for($meeting)->for($this->member)->cells(str_repeat('p', 28))->create(['day' => '2026-10-31']);
+    AvailabilityDay::factory()->for($this->member)->cells(str_repeat('p', 28))->create(['day' => '2026-10-31']);
 
     Livewire::actingAs($this->organizer)
         ->test(Form::class, ['meeting' => $meeting])
