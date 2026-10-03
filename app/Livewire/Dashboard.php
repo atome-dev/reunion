@@ -81,6 +81,7 @@ class Dashboard extends Component
     {
         return AvailabilityDay::query()
             ->where('user_id', Auth::id())
+            ->where('cells', '!=', AvailabilityDay::Empty)
             ->whereBetween('day', [now(config('app.display_timezone'))->toDateString(), AvailabilityDay::lastEditableDay()->toDateString()])
             ->count();
     }

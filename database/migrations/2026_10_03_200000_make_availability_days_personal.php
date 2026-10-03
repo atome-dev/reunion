@@ -45,9 +45,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('availability_days', function (Blueprint $table) {
-            $table->index('user_id');
-        });
+        if (! Schema::hasIndex('availability_days', 'availability_days_user_id_index')) {
+            Schema::table('availability_days', function (Blueprint $table) {
+                $table->index('user_id');
+            });
+        }
 
         Schema::table('availability_days', function (Blueprint $table) {
             $table->dropUnique(['user_id', 'day']);

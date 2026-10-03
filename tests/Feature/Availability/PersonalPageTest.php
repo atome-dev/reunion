@@ -128,3 +128,10 @@ test('the meeting page uses the shared grid and links to the whole calendar', fu
         ->assertSeeLivewire(Grid::class)
         ->assertSee(__('See my whole calendar'));
 });
+
+test('earlier days of the current week still show what was filled in', function () {
+    AvailabilityDay::factory()->for($this->user)->cells($this->evening)->create(['day' => '2026-11-02']);
+    $this->travelTo(now('Europe/Paris')->setDate(2026, 11, 4)->setTime(10, 0));
+
+    expect(Livewire::actingAs($this->user)->test(Grid::class)->instance()->cells)->toBe(['2026-11-02' => $this->evening]);
+});

@@ -13,7 +13,7 @@
         <flux:card class="flex flex-col gap-4">
             <flux:heading>{{ __('Dates') }}</flux:heading>
             <div class="grid gap-4 sm:grid-cols-2">
-                <flux:date-picker wire:model="rangeStart" :label="__('From')" locale="fr" :min="today(config('app.display_timezone'))->toDateString()" with-today />
+                <flux:date-picker wire:model="rangeStart" :label="__('From')" locale="fr" :min="today(config('app.display_timezone'))->toDateString()" :max="\App\Models\AvailabilityDay::lastEditableDay()->toDateString()" with-today />
                 <flux:date-picker wire:model="rangeEnd" :label="__('To')" locale="fr" :min="today(config('app.display_timezone'))->toDateString()" :max="\App\Models\AvailabilityDay::lastEditableDay()->toDateString()" />
             </div>
             <flux:date-picker wire:model="deadline" :label="__('Answer before')" :description="__('Indicative: members can still change their availability until you confirm a date.')" locale="fr" :min="today(config('app.display_timezone'))->toDateString()" />

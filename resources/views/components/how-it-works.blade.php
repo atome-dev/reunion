@@ -1,7 +1,7 @@
 @php
     $steps = [
         ['title' => 'Lancez une demande', 'text' => 'Une période, une date butoir : les membres sont prévenus.'],
-        ['title' => 'Chacun colorie ses disponibilités', 'text' => 'Une fois pour toutes, sur place ou à distance, du bout du doigt.'],
+        ['title' => 'Chacun colorie ses disponibilités', 'text' => 'Chacun tient son calendrier à jour, sur place ou à distance, du bout du doigt.'],
         ['title' => 'Le résumé trouve les meilleurs créneaux', 'text' => 'Selon la durée et le nombre de présents.'],
         ['title' => 'Validez, ou faites voter', 'text' => 'Un créneau, ou plusieurs soumis au vote.'],
         ['title' => 'Tout le monde est prévenu', 'text' => 'Un e-mail et un rappel dans l’agenda.'],

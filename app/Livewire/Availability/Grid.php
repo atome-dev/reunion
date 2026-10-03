@@ -96,6 +96,10 @@ class Grid extends Component
     {
         [$first, $last] = $this->shownBounds();
 
+        if ($this->meeting === null) {
+            $first = $first->startOfWeek(CarbonInterface::MONDAY);
+        }
+
         return AvailabilityDay::query()
             ->where('user_id', Auth::id())
             ->whereBetween('day', [$first->toDateString(), $last->toDateString()])
