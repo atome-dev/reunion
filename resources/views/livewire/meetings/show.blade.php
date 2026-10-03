@@ -14,8 +14,13 @@
                 <flux:text class="mt-2 max-w-prose">{{ $meeting->description }}</flux:text>
             @endif
         </div>
-        @if ($this->isOrganizer() && $meeting->status === MeetingStatus::Collecting)
-            <flux:button icon="pencil" :href="route('meetings.edit', $meeting)" wire:navigate>{{ __('Edit the request') }}</flux:button>
+        @if ($this->isOrganizer())
+            <div class="flex flex-wrap items-center gap-2">
+                @if ($meeting->status === MeetingStatus::Collecting)
+                    <flux:button icon="pencil" :href="route('meetings.edit', $meeting)" wire:navigate>{{ __('Edit the request') }}</flux:button>
+                @endif
+                <flux:button icon="trash" variant="danger" wire:click="deleteMeeting" wire:confirm="{{ __('Delete this request and all its answers?') }}">{{ __('Delete the request') }}</flux:button>
+            </div>
         @endif
     </header>
 

@@ -5,7 +5,9 @@ namespace App\Livewire\Meetings;
 use App\Models\AvailabilityDay;
 use App\Models\Meeting;
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -45,26 +47,26 @@ class AvailabilityGrid extends Component
             }
         }
 
-        foreach ($days as $day => $cells) {
-            $query = AvailabilityDay::query()->where('meeting_id', $this->meeting->id)->where('user_id', Auth::id())->where('day', $day);
+        DB::transaction(function () use ($days): void {
+            foreach ($days as $day => $cells) {
+                $query = AvailabilityDay::query()->where('meeting_id', $this->meeting->id)->where('user_id', Auth::id())->where('day', $day);
 
-            if ($cells === AvailabilityDay::Empty) {
-                $query->delete();
+                if ($cells === AvailabilityDay::Empty) {
+                    $query->delete();
 
-                continue;
+                    continue;
+                }
+
+                AvailabilityDay::unguarded(fn () => AvailabilityDay::query()->updateOrCreate(
+                    ['meeting_id' => $this->meeting->id, 'user_id' => Auth::id(), 'day' => $day],
+                    ['cells' => $cells],
+                ));
             }
-
-            $existing = $query->first() ?? tap(new AvailabilityDay, function (AvailabilityDay $new) use ($day): void {
-                $new->meeting()->associate($this->meeting);
-                $new->user()->associate(Auth::user());
-                $new->day = $day;
-            });
-
-            $existing->cells = $cells;
-            $existing->save();
-        }
+        });
 
         unset($this->cells, $this->respondentCount);
+
+        $this->dispatch('availability-saved');
 
         return true;
     }
@@ -92,8 +94,8 @@ class AvailabilityGrid extends Component
     #[Computed]
     public function weeks(): array
     {
-        $start = CarbonImmutable::parse($this->meeting->range_start->toDateString())->startOfWeek();
-        $end = CarbonImmutable::parse($this->meeting->range_end->toDateString())->endOfWeek();
+        $start = CarbonImmutable::parse($this->meeting->range_start->toDateString())->startOfWeek(CarbonInterface::MONDAY);
+        $end = CarbonImmutable::parse($this->meeting->range_end->toDateString())->endOfWeek(CarbonInterface::SUNDAY);
         $inRange = array_flip($this->meeting->rangeDays());
         $weeks = [];
 

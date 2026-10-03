@@ -13,6 +13,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
@@ -57,6 +58,15 @@ class Summary extends Component
         $this->normalizeSettings();
         $this->selected = [];
         unset($this->windows);
+    }
+
+    /**
+     * The organizer edited their own grid on this page: the windows and respondents are stale.
+     */
+    #[On('availability-saved')]
+    public function refreshWindows(): void
+    {
+        unset($this->windows, $this->nonRespondents);
     }
 
     /**
