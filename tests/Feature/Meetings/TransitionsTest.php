@@ -108,3 +108,36 @@ test('the calendar file is valid and escaped', function () {
         ->toContain('UID:meeting-'.$this->meeting->id.'@')
         ->toEndWith("END:VCALENDAR\r\n");
 });
+
+test('long calendar lines are folded at 75 octets without splitting characters', function () {
+    $title = str_repeat('Assemblée générale ', 8);
+    $this->meeting->forceFill([
+        'title' => $title,
+        'status' => MeetingStatus::Confirmed,
+        'confirmed_starts_at' => utc('2026-11-02 17:00'),
+        'confirmed_ends_at' => utc('2026-11-02 19:00'),
+    ])->save();
+
+    $ics = (new BuildIcsCalendar)($this->meeting);
+
+    foreach (explode("\r\n", $ics) as $line) {
+        expect(strlen($line))->toBeLessThanOrEqual(75)
+            ->and(mb_check_encoding($line, 'UTF-8'))->toBeTrue();
+    }
+    expect(str_replace("\r\n ", '', $ics))->toContain('SUMMARY:'.$title);
+});
+
+test('the vote email lists the new slots', function () {
+    $this->meeting->load('slots');
+
+    (new OpenVote)($this->meeting, [
+        [utc('2026-11-02 17:00'), utc('2026-11-02 19:00')],
+        [utc('2026-11-03 17:00'), utc('2026-11-03 19:00')],
+    ]);
+
+    Notification::assertSentTo($this->member, VoteOpenedNotification::class, function (VoteOpenedNotification $notification) {
+        $lines = collect($notification->toMail($this->member)->introLines);
+
+        return $lines->filter(fn ($line) => str_starts_with($line, '•'))->count() === 2;
+    });
+});

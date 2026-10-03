@@ -7,7 +7,6 @@ use App\Exceptions\InvalidMeetingTransition;
 use App\Models\Meeting;
 use App\Notifications\MeetingConfirmedNotification;
 use Carbon\CarbonInterface;
-use Illuminate\Support\Facades\Notification;
 
 class ConfirmMeeting
 {
@@ -23,6 +22,8 @@ class ConfirmMeeting
             'confirmed_ends_at' => $endsAt->copy()->utc(),
         ])->save();
 
-        Notification::send($meeting->group->members, new MeetingConfirmedNotification($meeting));
+        foreach ($meeting->group->members as $member) {
+            rescue(fn () => $member->notify(new MeetingConfirmedNotification($meeting)), report: true);
+        }
     }
 }

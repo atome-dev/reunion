@@ -29,7 +29,27 @@ class BuildIcsCalendar
             'END:VCALENDAR',
         ]);
 
-        return implode("\r\n", $lines)."\r\n";
+        return implode("\r\n", array_map($this->fold(...), $lines))."\r\n";
+    }
+
+    /**
+     * Fold a content line at 75 octets, never splitting a UTF-8 character (RFC 5545 section 3.1).
+     */
+    private function fold(string $line): string
+    {
+        $chunks = [];
+        $limit = 75;
+
+        while (strlen($line) > $limit) {
+            $chunk = mb_strcut($line, 0, $limit, 'UTF-8');
+            $chunks[] = $chunk;
+            $line = substr($line, strlen($chunk));
+            $limit = 74;
+        }
+
+        $chunks[] = $line;
+
+        return implode("\r\n ", $chunks);
     }
 
     private function escape(string $text): string

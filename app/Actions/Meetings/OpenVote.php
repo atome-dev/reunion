@@ -8,7 +8,6 @@ use App\Models\Meeting;
 use App\Notifications\VoteOpenedNotification;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 
 class OpenVote
 {
@@ -33,9 +32,10 @@ class OpenVote
             $meeting->forceFill(['status' => MeetingStatus::Voting])->save();
         });
 
-        Notification::send(
-            $meeting->group->members()->whereKeyNot($meeting->created_by)->get(),
-            new VoteOpenedNotification($meeting),
-        );
+        $meeting->load('slots');
+
+        foreach ($meeting->group->members()->whereKeyNot($meeting->created_by)->get() as $member) {
+            rescue(fn () => $member->notify(new VoteOpenedNotification($meeting)), report: true);
+        }
     }
 }
