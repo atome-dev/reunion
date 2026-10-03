@@ -1,7 +1,7 @@
 <div
-    x-data="availabilityGrid({ weeks: @js($this->weeks), cells: @js($this->cells), canEdit: @js($this->canEdit) })"
+    x-data="availabilityGrid({ weeks: @js($this->weeks), cells: @js($this->cells), canEdit: @js($this->canEdit), labels: @js(['0' => __('Unavailable'), 'p' => __('On site'), 'd' => __('Remote')]), times: @js(array_map(fn (int $cell): string => \App\Models\AvailabilityDay::cellTime($cell), range(0, \App\Models\AvailabilityDay::CellCount - 1))) })"
     x-on:pointerup.window="end()"
-    x-on:pointercancel.window="end()"
+    x-on:pointercancel.window="cancel()"
     class="flex flex-col gap-4"
 >
     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -12,12 +12,17 @@
         </div>
         <flux:text size="sm">
             {{ trans_choice(':count person has answered|:count people have answered', $this->respondentCount) }} {{ __('out of :total', ['total' => $this->memberCount]) }}
-            · <span x-show="status === 'saving'">{{ __('Saving…') }}</span><span x-show="status === 'saved'" x-cloak>{{ __('Saved') }}</span><span x-show="status === 'error'" x-cloak class="text-red-600">{{ __('Not saved, try again') }}</span>
+            · <span role="status" aria-live="polite" class="inline-flex items-center gap-2">
+                <span x-show="status === 'saving'" x-cloak>{{ __('Saving…') }}</span>
+                <span x-show="status === 'saved'" x-cloak>{{ __('Saved') }}</span>
+                <span x-show="status === 'error'" x-cloak class="text-red-600 dark:text-red-400">{{ $errors->first('days') ?: __('Not saved, try again') }}</span>
+            </span>
+            <flux:button size="xs" x-show="status === 'error'" x-cloak x-on:click="save()">{{ __('Try again') }}</flux:button>
         </flux:text>
     </div>
 
     @if ($this->canEdit)
-        <flux:callout icon="cursor-arrow-rays" :heading="__('Tap or drag over the grid')" :text="__('Once for on site, twice for remote, three times to clear. Times are in Paris time.')" />
+        <flux:callout icon="cursor-arrow-rays" :heading="__('Tap or press and drag over the grid')" :text="__('Tap a cell to change it, or press and hold then drag to paint several cells. Once for on site, twice for remote, three times to clear. Times are in Paris time.')" />
     @else
         <flux:callout icon="lock-closed" :heading="__('The grid is closed')" :text="__('The organizer is choosing the date from everyone\'s availability.')" />
     @endif
@@ -53,13 +58,13 @@
                 </div>
                 <template x-for="(day, index) in currentWeek" :key="day.date + '-{{ $cell }}'">
                     <button type="button" data-cell x-bind:data-date="day.date" data-index="{{ $cell }}"
-                        x-on:keydown.space.prevent="cycle(day.date, {{ $cell }})"
-                        x-on:keydown.enter.prevent="cycle(day.date, {{ $cell }})"
+                        x-on:keydown="key($event, day.date, {{ $cell }})"
+                        x-on:focus="focusDate = day.date; focusIndex = {{ $cell }}"
+                        x-bind:tabindex="(focusDate === day.date && focusIndex === {{ $cell }}) ? 0 : -1"
                         x-bind:disabled="!canEdit || !day.inRange"
-                        x-bind:aria-label="day.label + ' {{ \App\Models\AvailabilityDay::cellTime($cell) }}'"
-                        x-bind:aria-pressed="value(day.date, {{ $cell }}) !== '0'"
+                        x-bind:aria-label="label(day, {{ $cell }})"
                         class="h-5 rounded-sm border border-zinc-200 transition-colors disabled:cursor-not-allowed dark:border-white/10 @if ($cell % 2 === 1) mb-0.5 @endif"
-                        style="touch-action: none;"
+                        style="touch-action: pan-y;"
                         x-bind:class="{
                             'max-sm:hidden': index !== mobileDay,
                             'bg-zinc-100 dark:bg-white/5': !day.inRange,

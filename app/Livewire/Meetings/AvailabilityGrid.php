@@ -32,9 +32,10 @@ class AvailabilityGrid extends Component
      *
      * @param  array<string, string>  $days
      */
-    public function saveDays(array $days): void
+    public function saveDays(array $days): bool
     {
         $this->authorize('editAvailability', $this->meeting);
+        $this->resetErrorBag('days');
 
         $allowedDays = $this->meeting->rangeDays();
 
@@ -64,6 +65,8 @@ class AvailabilityGrid extends Component
         }
 
         unset($this->cells, $this->respondentCount);
+
+        return true;
     }
 
     #[Computed]

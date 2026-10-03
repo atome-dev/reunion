@@ -96,3 +96,22 @@ test('weeks run from monday to sunday and mark days outside the range', function
         ->and($weeks[1][1])->toMatchArray(['date' => '2026-11-10', 'inRange' => true])
         ->and($weeks[1][2])->toMatchArray(['date' => '2026-11-11', 'inRange' => false]);
 });
+
+test('a refused save shows its error and a later valid save clears it', function () {
+    $component = Livewire::actingAs($this->member)
+        ->test(AvailabilityGrid::class, ['meeting' => $this->meeting])
+        ->call('saveDays', ['2026-11-03' => str_repeat('p', 28)])
+        ->assertHasErrors('days')
+        ->assertSee(__('This availability could not be saved.'));
+
+    $component->call('saveDays', ['2026-11-04' => str_repeat('p', 28)])
+        ->assertHasNoErrors()
+        ->assertDontSee(__('This availability could not be saved.'));
+});
+
+test('saveDays reports success to the browser', function () {
+    Livewire::actingAs($this->member)
+        ->test(AvailabilityGrid::class, ['meeting' => $this->meeting])
+        ->call('saveDays', ['2026-11-04' => str_repeat('p', 28)])
+        ->assertReturned(true);
+});
