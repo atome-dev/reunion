@@ -42,7 +42,7 @@ class Dashboard extends Component
     }
 
     /**
-     * Upcoming meetings of my groups that I have not answered yet.
+     * Requests of my groups waiting for my grid, and votes I have not completed.
      *
      * @return Collection<int, Meeting>
      */
@@ -52,11 +52,33 @@ class Dashboard extends Component
         $userId = Auth::id();
 
         return Meeting::query()
-            ->upcoming()
             ->whereHas('group.members', fn (Builder $members) => $members->whereKey($userId))
-            ->where('status', MeetingStatus::Collecting->value)
-            ->whereDoesntHave('availabilityDays', fn (Builder $days) => $days->where('user_id', $userId))
+            ->where(fn (Builder $query) => $query
+                ->where(fn (Builder $collecting) => $collecting
+                    ->where('status', MeetingStatus::Collecting->value)
+                    ->whereDoesntHave('availabilityDays', fn (Builder $days) => $days->where('user_id', $userId)))
+                ->orWhere(fn (Builder $voting) => $voting
+                    ->where('status', MeetingStatus::Voting->value)
+                    ->whereHas('slots', fn (Builder $slots) => $slots->whereDoesntHave('votes', fn (Builder $votes) => $votes->where('user_id', $userId)))))
             ->with('group')
+            ->orderBy('deadline')
+            ->get();
+    }
+
+    /**
+     * Confirmed meetings of my groups still ahead.
+     *
+     * @return Collection<int, Meeting>
+     */
+    #[Computed]
+    public function confirmedMeetings(): Collection
+    {
+        return Meeting::query()
+            ->whereHas('group.members', fn (Builder $members) => $members->whereKey(Auth::id()))
+            ->where('status', MeetingStatus::Confirmed->value)
+            ->where('confirmed_starts_at', '>=', now())
+            ->with('group')
+            ->orderBy('confirmed_starts_at')
             ->get();
     }
 }

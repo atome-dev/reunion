@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\GroupInvitationController;
+use App\Http\Controllers\MeetingCalendarController;
 use App\Livewire\Dashboard;
 use App\Livewire\Groups\Show as GroupsShow;
 use App\Livewire\Meetings\Form as MeetingsForm;
@@ -29,6 +30,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('groups/{group}/meetings/create', MeetingsForm::class)->name('meetings.create');
     Route::livewire('meetings/{meeting}/edit', MeetingsForm::class)->name('meetings.edit');
     Route::livewire('meetings/{meeting}', MeetingsShow::class)->name('meetings.show');
+    Route::get('meetings/{meeting}/calendar.ics', MeetingCalendarController::class)->name('meetings.calendar');
 });
 
 require __DIR__.'/settings.php';

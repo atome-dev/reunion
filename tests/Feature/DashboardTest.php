@@ -4,6 +4,8 @@ use App\Livewire\Dashboard;
 use App\Models\AvailabilityDay;
 use App\Models\Group;
 use App\Models\Meeting;
+use App\Models\MeetingSlot;
+use App\Models\SlotVote;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -64,4 +66,36 @@ test('the dashboard lists my groups and only the upcoming meetings I have not an
         ->assertDontSee('Réunion déjà répondue')
         ->assertDontSee('Réunion passée')
         ->assertDontSee('Réunion d\'un autre groupe');
+});
+
+test('pending answers include grids to fill and votes to complete, confirmed meetings are listed', function () {
+    $user = User::factory()->create();
+    $group = Group::factory()->create();
+    $group->addMember($user);
+    Meeting::factory()->for($group)->create(['title' => 'Grille à remplir']);
+    $voting = Meeting::factory()->for($group)->voting()->create(['title' => 'Vote à faire']);
+    foreach ([1, 2] as $day) {
+        MeetingSlot::factory()->for($voting)->create(['starts_at' => now()->addDays($day)->setTime(18, 30)]);
+    }
+    $voted = Meeting::factory()->for($group)->voting()->create(['title' => 'Vote déjà fait']);
+    foreach ([1, 2] as $day) {
+        $slot = MeetingSlot::factory()->for($voted)->create(['starts_at' => now()->addDays($day)->setTime(18, 30)]);
+        SlotVote::factory()->for($slot, 'slot')->for($user)->create();
+    }
+    Meeting::factory()->for($group)->confirmed(now()->addWeek())->create(['title' => 'Réunion confirmée']);
+
+    $this->actingAs($user)->get(route('dashboard'))
+        ->assertSee('Grille à remplir')
+        ->assertSee('Vote à faire')
+        ->assertDontSee('Vote déjà fait')
+        ->assertSee('Réunion confirmée');
+});
+
+test('a member who joined during the collection is asked for their availability', function () {
+    $group = Group::factory()->create();
+    Meeting::factory()->for($group)->create(['title' => 'Demande en cours']);
+    $newcomer = User::factory()->create();
+    $group->addMember($newcomer);
+
+    $this->actingAs($newcomer)->get(route('dashboard'))->assertSee('Demande en cours');
 });

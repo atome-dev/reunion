@@ -6,10 +6,32 @@
                 <flux:card wire:key="pending-{{ $meeting->id }}" class="flex flex-wrap items-center justify-between gap-4 bg-sun/40! dark:bg-sun/10!">
                     <div>
                         <flux:heading>{{ $meeting->title }}</flux:heading>
-                        <flux:text>{{ $meeting->group->name }} · {{ __('Answer before :date', ['date' => $meeting->deadline->translatedFormat('j F')]) }}</flux:text>
+                        <flux:text>
+                            {{ $meeting->group->name }} ·
+                            {{ $meeting->status === \App\Enums\MeetingStatus::Voting ? __('Vote in progress') : __('Answer before :date', ['date' => $meeting->deadline->translatedFormat('j F')]) }}
+                        </flux:text>
                     </div>
-                    <flux:button variant="primary" :href="route('meetings.show', $meeting)" wire:navigate>{{ __('Answer') }}</flux:button>
+                    <flux:button variant="primary" :href="route('meetings.show', $meeting)" wire:navigate>
+                        {{ $meeting->status === \App\Enums\MeetingStatus::Voting ? __('Vote') : __('Give my availability') }}
+                    </flux:button>
                 </flux:card>
+            @endforeach
+        </section>
+    @endif
+
+    @if ($this->confirmedMeetings->isNotEmpty())
+        <section class="flex flex-col gap-4">
+            <flux:heading size="lg" level="2">{{ __('Confirmed meetings') }}</flux:heading>
+            @foreach ($this->confirmedMeetings as $meeting)
+                <a wire:key="confirmed-{{ $meeting->id }}" href="{{ route('meetings.show', $meeting) }}" wire:navigate class="group/card block">
+                    <flux:card class="flex flex-wrap items-center justify-between gap-4 transition group-hover/card:border-forest! dark:group-hover/card:border-sun!">
+                        <div>
+                            <flux:heading>{{ $meeting->title }}</flux:heading>
+                            <flux:text>{{ $meeting->group->name }}</flux:text>
+                        </div>
+                        <flux:badge color="green">{{ ucfirst($meeting->confirmed_starts_at->copy()->setTimezone(config('app.display_timezone'))->translatedFormat('D j F · H\hi')) }}</flux:badge>
+                    </flux:card>
+                </a>
             @endforeach
         </section>
     @endif
