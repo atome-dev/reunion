@@ -3,7 +3,10 @@
 namespace App\Livewire\Meetings;
 
 use App\Models\Meeting;
+use App\Models\User;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -36,6 +39,37 @@ class Show extends Component
         $this->meeting->delete();
 
         $this->redirectRoute('groups.show', $this->meeting->group, navigate: true);
+    }
+
+    public function decline(): void
+    {
+        $this->authorize('decline', $this->meeting);
+
+        $this->meeting->decliners()->syncWithoutDetaching([Auth::id()]);
+        unset($this->hasDeclined, $this->decliners);
+    }
+
+    public function undoDecline(): void
+    {
+        $this->authorize('decline', $this->meeting);
+
+        $this->meeting->decliners()->detach(Auth::id());
+        unset($this->hasDeclined, $this->decliners);
+    }
+
+    #[Computed]
+    public function hasDeclined(): bool
+    {
+        return $this->meeting->isDeclinedBy(Auth::user());
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    #[Computed]
+    public function decliners(): Collection
+    {
+        return $this->meeting->decliners()->orderBy('name')->get();
     }
 
     #[Computed]

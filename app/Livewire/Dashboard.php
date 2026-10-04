@@ -98,6 +98,7 @@ class Dashboard extends Component
             ->whereHas('group.members', fn (Builder $members) => $members->whereKey(Auth::id()))
             ->where('status', MeetingStatus::Confirmed->value)
             ->where('confirmed_starts_at', '>=', now())
+            ->withExists(['declines as declined_by_me' => fn (Builder $declines) => $declines->where('user_id', Auth::id())])
             ->with('group')
             ->orderBy('confirmed_starts_at')
             ->get();

@@ -41,7 +41,12 @@
                             <flux:heading>{{ $meeting->title }}</flux:heading>
                             <flux:text>{{ $meeting->group->name }}</flux:text>
                         </div>
-                        <flux:badge color="green">{{ ucfirst($meeting->confirmed_starts_at->copy()->setTimezone(config('app.display_timezone'))->translatedFormat('D j F · H\hi')) }}</flux:badge>
+                        <div class="flex flex-wrap items-center gap-2">
+                            @if ($meeting->declined_by_me)
+                                <flux:badge color="zinc">{{ __("You're not coming") }}</flux:badge>
+                            @endif
+                            <flux:badge color="green">{{ ucfirst($meeting->confirmed_starts_at->copy()->setTimezone(config('app.display_timezone'))->translatedFormat('D j F · H\hi')) }}</flux:badge>
+                        </div>
                     </flux:card>
                 </a>
             @endforeach

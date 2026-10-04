@@ -38,7 +38,18 @@
                 <flux:button icon="calendar-days" :href="(new \App\Actions\Meetings\BuildGoogleCalendarUrl)($meeting)" target="_blank" rel="noopener">{{ __('Add to Google Calendar') }}</flux:button>
                 <flux:button icon="arrow-down-tray" :href="route('meetings.calendar', $meeting)">{{ __('Add to my calendar') }}</flux:button>
             </div>
+            @if ($this->hasDeclined)
+                <div class="flex flex-wrap items-center gap-3">
+                    <flux:text class="text-forest!">{{ __("You said you won't come.") }}</flux:text>
+                    <flux:button size="sm" wire:click="undoDecline">{{ __('Actually, I will come') }}</flux:button>
+                </div>
+            @else
+                <div><flux:button size="sm" variant="ghost" icon="x-mark" wire:click="decline" wire:confirm="{{ __('You won\'t come to this meeting? The slot will be freed in your availability.') }}">{{ __("I won't come") }}</flux:button></div>
+            @endif
         </flux:card>
+        @if ($this->decliners->isNotEmpty())
+            <flux:text>{{ __('Not coming: :names', ['names' => $this->decliners->pluck('name')->join(', ')]) }}</flux:text>
+        @endif
     @elseif ($meeting->status === MeetingStatus::Voting)
         <livewire:meetings.vote :meeting="$meeting" :key="'vote-'.$meeting->id" />
     @else
