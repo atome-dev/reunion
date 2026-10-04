@@ -14,7 +14,7 @@ class VoteOpenedNotification extends Notification
     {
         $mail = (new MailMessage)
             ->subject(__('Vote open: :title', ['title' => $this->meeting->title]))
-            ->line(__('The organizer of :group proposes these slots:', ['group' => $this->meeting->group->name]));
+            ->line(__('Slots are proposed for a vote in :group:', ['group' => $this->meeting->group->name]));
 
         foreach ($this->meeting->slots as $slot) {
             $mail->line('• '.ucfirst($slot->startsAtLocal()->translatedFormat('l j F, H\hi')).' – '.$slot->endsAtLocal()->format('H\hi'));

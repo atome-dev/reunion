@@ -28,7 +28,7 @@
     @if ($this->canEdit)
         <flux:callout icon="cursor-arrow-rays" :heading="__('Tap or press and drag over the grid')" :text="__('Tap a cell to change it, or press and hold then drag to paint several cells. Once for on site, twice for remote, three times to clear. Times are in Paris time.')" />
     @else
-        <flux:callout icon="lock-closed" :heading="__('The grid is closed')" :text="__('The organizer is choosing the date from everyone\'s availability.')" />
+        <flux:callout icon="lock-closed" :heading="__('The grid is closed')" :text="__('A date is being chosen from everyone\'s availability.')" />
     @endif
 
     <div class="flex items-center justify-between gap-2">

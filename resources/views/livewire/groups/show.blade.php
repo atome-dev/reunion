@@ -20,9 +20,9 @@
                     </flux:menu>
                 </flux:dropdown>
             @endif
-            @unless ($group->isCreator(auth()->user()))
+            @can('leave', $group)
                 <flux:button icon="arrow-right-start-on-rectangle" wire:click="leave" wire:confirm="{{ __('Leave this group?') }}">{{ __('Leave the group') }}</flux:button>
-            @endunless
+            @endcan
         </div>
     </header>
 
