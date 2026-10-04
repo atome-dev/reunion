@@ -25,7 +25,7 @@ class GroupInvitationNotification extends Notification
         return (new MailMessage)
             ->subject(__('Invitation to join :group', ['group' => $group->name]))
             ->line(__(':inviter invites you to join the group :group on :app.', [
-                'inviter' => $this->invitation->inviter->name,
+                'inviter' => $this->invitation->inviter?->name ?? __('a former member'),
                 'group' => $group->name,
                 'app' => config('app.name'),
             ]))

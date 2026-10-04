@@ -2,6 +2,7 @@
 
 use App\Enums\MeetingStatus;
 use App\Livewire\Groups\Show as GroupShow;
+use App\Livewire\Meetings\Form as MeetingForm;
 use App\Livewire\Meetings\Show as MeetingShow;
 use App\Livewire\Meetings\Summary;
 use App\Livewire\Meetings\Vote;
@@ -9,7 +10,9 @@ use App\Models\Group;
 use App\Models\GroupInvitation;
 use App\Models\Meeting;
 use App\Models\MeetingSlot;
+use App\Models\SlotVote;
 use App\Models\User;
+use App\Notifications\MeetingRequestedNotification;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
@@ -62,11 +65,58 @@ test('inviting follows the setting', function () {
         ->call('invite')
         ->assertOk();
 
+    expect(GroupInvitation::where('group_id', $this->group->id)->where('email', 'amina@example.com')->exists())->toBeTrue();
+
     Livewire::actingAs($this->member)->test(GroupShow::class, ['group' => $this->group])
         ->call('cancelInvitation', $invitation->id)
         ->assertOk();
 
     expect(GroupInvitation::find($invitation->id))->toBeNull();
+});
+
+test('a member saves a request when requests are open', function () {
+    $this->group->update(['members_can_request_meetings' => true]);
+
+    Livewire::actingAs($this->member)->test(MeetingForm::class, ['group' => $this->group])
+        ->set('title', 'Assemblée de rentrée')
+        ->set('rangeStart', '2026-11-09')
+        ->set('rangeEnd', '2026-11-20')
+        ->set('deadline', '2026-11-06')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect(Meeting::sole()->created_by)->toBe($this->member->id);
+    Notification::assertSentTo($this->creator, MeetingRequestedNotification::class);
+    Notification::assertNotSentTo($this->member, MeetingRequestedNotification::class);
+});
+
+test('deleting the author keeps the request, its votes and shows a fallback name', function () {
+    $meeting = requestFor($this->group, $this->member, ['status' => MeetingStatus::Voting]);
+    $slot = MeetingSlot::factory()->for($meeting)->create(['starts_at' => '2026-11-05 17:00:00', 'ends_at' => '2026-11-05 19:00:00']);
+    $voter = User::factory()->create();
+    $this->group->addMember($voter);
+    SlotVote::factory()->create(['meeting_slot_id' => $slot->id, 'user_id' => $voter->id]);
+
+    $this->member->delete();
+
+    expect($meeting->fresh()->created_by)->toBeNull()
+        ->and($slot->votes()->count())->toBe(1);
+    $this->actingAs($this->creator)->get(route('meetings.show', $meeting))->assertOk()->assertSee(__('Requested by :name', ['name' => __('a former member')]));
+    $this->actingAs($voter)->get(route('meetings.edit', $meeting))->assertForbidden();
+});
+
+test('deleting the inviter keeps the pending invitation', function () {
+    $invitation = GroupInvitation::factory()->for($this->group)->create(['invited_by' => $this->member->id]);
+
+    $this->member->delete();
+
+    expect($invitation->fresh())->not->toBeNull()
+        ->and($invitation->fresh()->invited_by)->toBeNull();
+});
+
+test('only a non-creator member sees the leave button', function () {
+    $this->actingAs($this->member)->get(route('groups.show', $this->group))->assertSee(__('Leave the group'));
+    $this->actingAs($this->creator)->get(route('groups.show', $this->group))->assertDontSee(__('Leave the group'));
 });
 
 test('validating follows the setting', function () {

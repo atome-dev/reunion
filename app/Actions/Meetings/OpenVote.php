@@ -5,6 +5,7 @@ namespace App\Actions\Meetings;
 use App\Enums\MeetingStatus;
 use App\Exceptions\InvalidMeetingTransition;
 use App\Models\Meeting;
+use App\Models\User;
 use App\Notifications\VoteOpenedNotification;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,7 @@ class OpenVote
     /**
      * @param  list<array{0: CarbonInterface, 1: CarbonInterface}>  $slots  start and end of each slot, in UTC
      */
-    public function __invoke(Meeting $meeting, array $slots): void
+    public function __invoke(Meeting $meeting, array $slots, User $openedBy): void
     {
         $distinct = collect($slots)->unique(fn (array $slot): string => $slot[0]->getTimestamp().'-'.$slot[1]->getTimestamp());
 
@@ -36,7 +37,7 @@ class OpenVote
 
         $meeting->refresh()->load('slots');
 
-        foreach ($meeting->group->members()->whereKeyNot($meeting->created_by)->get() as $member) {
+        foreach ($meeting->group->members()->whereKeyNot($openedBy->id)->get() as $member) {
             rescue(fn () => $member->notify(new VoteOpenedNotification($meeting)), report: true);
         }
     }

@@ -11,6 +11,7 @@ use App\Models\Meeting;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -94,7 +95,7 @@ class Summary extends Component
 
         $slots = array_map(fn (string $key): array => $this->chosenSlot($key, 'selected'), array_values(array_unique($this->selected)));
 
-        $this->applyTransition(fn () => $openVote($this->meeting, $slots), 'selected');
+        $this->applyTransition(fn () => $openVote($this->meeting, $slots, Auth::user()), 'selected');
     }
 
     /**

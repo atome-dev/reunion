@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
  * @property int $group_id
  * @property string $email
  * @property string $token_hash
- * @property int $invited_by
+ * @property int|null $invited_by
  * @property Carbon $expires_at
  * @property Carbon|null $accepted_at
  * @property int|null $accepted_by

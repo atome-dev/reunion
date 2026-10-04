@@ -2,7 +2,7 @@
     <div class="flex flex-col gap-6">
         <x-auth-header
             :title="__('Join :group', ['group' => $invitation->group->name])"
-            :description="__(':inviter invites you to join this group to plan its meetings together.', ['inviter' => $invitation->inviter->name])"
+            :description="__(':inviter invites you to join this group to plan its meetings together.', ['inviter' => $invitation->inviter?->name ?? __('A former member')])"
         />
 
         @auth

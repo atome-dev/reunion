@@ -42,7 +42,7 @@ test('a failing mail does not block opening a vote', function () {
     (new OpenVote)($this->meeting, [
         [Carbon::parse('2026-11-02 17:00', 'UTC'), Carbon::parse('2026-11-02 19:00', 'UTC')],
         [Carbon::parse('2026-11-03 17:00', 'UTC'), Carbon::parse('2026-11-03 19:00', 'UTC')],
-    ]);
+    ], $this->group->owner);
 
     expect($this->meeting->fresh()->status)->toBe(MeetingStatus::Voting)
         ->and($this->sentTo)->toContain($this->other->id);

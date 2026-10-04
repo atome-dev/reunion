@@ -25,7 +25,7 @@ use Illuminate\Support\Collection;
  * @property string $title
  * @property string|null $description
  * @property string|null $location
- * @property int $created_by
+ * @property int|null $created_by
  * @property Carbon $range_start
  * @property Carbon $range_end
  * @property Carbon $deadline

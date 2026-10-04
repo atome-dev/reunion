@@ -10,7 +10,7 @@
                     <flux:text>{{ __('From :start to :end · answer before :deadline', ['start' => $meeting->range_start->translatedFormat('j F'), 'end' => $meeting->range_end->translatedFormat('j F'), 'deadline' => $meeting->deadline->translatedFormat('j F')]) }}</flux:text>
                 @endif
             </div>
-            <flux:text size="sm" class="mt-2">{{ __('Requested by :name', ['name' => $meeting->creator->name]) }}</flux:text>
+            <flux:text size="sm" class="mt-2">{{ __('Requested by :name', ['name' => $meeting->creator?->name ?? __('a former member')]) }}</flux:text>
             @if ($meeting->description)
                 <flux:text class="mt-2 max-w-prose">{{ $meeting->description }}</flux:text>
             @endif
@@ -39,7 +39,7 @@
     @elseif ($meeting->status === MeetingStatus::Voting)
         <livewire:meetings.vote :meeting="$meeting" :key="'vote-'.$meeting->id" />
     @else
-        {{-- The organizer is a participant too: their own grid comes first, then the summary. --}}
+        {{-- The person validating is a participant too: their own grid comes first, then the summary. --}}
         <section class="flex flex-col gap-4">
             <div class="flex items-baseline justify-between gap-4">
                 <flux:heading size="lg" level="2">{{ __('My availability') }}</flux:heading>

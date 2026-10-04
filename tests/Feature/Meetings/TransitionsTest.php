@@ -29,14 +29,26 @@ function utc(string $time): Carbon
     return Carbon::parse($time, 'UTC');
 }
 
-test('opening a vote creates the slots and notifies members except the creator', function () {
+test('opening a vote creates the slots and notifies members except the opener', function () {
     (new OpenVote)($this->meeting, [
         [utc('2026-11-02 17:00'), utc('2026-11-02 19:00')],
         [utc('2026-11-03 17:00'), utc('2026-11-03 19:00')],
-    ]);
+    ], $this->group->owner);
 
     expect($this->meeting->fresh()->status)->toBe(MeetingStatus::Voting)
         ->and($this->meeting->slots()->count())->toBe(2);
+    Notification::assertSentTo($this->member, VoteOpenedNotification::class);
+    Notification::assertNotSentTo($this->group->owner, VoteOpenedNotification::class);
+});
+
+test('the vote email skips the opener, not the author of the request', function () {
+    $meeting = Meeting::factory()->for($this->group)->create(['created_by' => $this->member->id]);
+
+    (new OpenVote)($meeting, [
+        [utc('2026-11-02 17:00'), utc('2026-11-02 19:00')],
+        [utc('2026-11-03 17:00'), utc('2026-11-03 19:00')],
+    ], $this->group->owner);
+
     Notification::assertSentTo($this->member, VoteOpenedNotification::class);
     Notification::assertNotSentTo($this->group->owner, VoteOpenedNotification::class);
 });
@@ -45,14 +57,14 @@ test('a vote needs two distinct slots and an open collection', function () {
     expect(fn () => (new OpenVote)($this->meeting, [
         [utc('2026-11-02 17:00'), utc('2026-11-02 19:00')],
         [utc('2026-11-02 17:00'), utc('2026-11-02 19:00')],
-    ]))->toThrow(InvalidMeetingTransition::class);
+    ], $this->group->owner))->toThrow(InvalidMeetingTransition::class);
 
     $voting = Meeting::factory()->for($this->group)->voting()->create();
 
     expect(fn () => (new OpenVote)($voting, [
         [utc('2026-11-02 17:00'), utc('2026-11-02 19:00')],
         [utc('2026-11-03 17:00'), utc('2026-11-03 19:00')],
-    ]))->toThrow(InvalidMeetingTransition::class);
+    ], $this->group->owner))->toThrow(InvalidMeetingTransition::class);
 });
 
 test('confirming stores the date and emails everyone with a calendar file', function () {
@@ -133,7 +145,7 @@ test('the vote email lists the new slots', function () {
     (new OpenVote)($this->meeting, [
         [utc('2026-11-02 17:00'), utc('2026-11-02 19:00')],
         [utc('2026-11-03 17:00'), utc('2026-11-03 19:00')],
-    ]);
+    ], $this->group->owner);
 
     Notification::assertSentTo($this->member, VoteOpenedNotification::class, function (VoteOpenedNotification $notification) {
         $lines = collect($notification->toMail($this->member)->introLines);
