@@ -48,7 +48,7 @@
     </div>
 
     <flux:card class="w-full overflow-x-auto p-2! sm:w-fit">
-        <div class="grid select-none grid-cols-[3.5rem_1fr] gap-px sm:grid-cols-[3.5rem_repeat(7,3.5rem)]" x-on:pointerdown="start($event)" x-on:pointermove="move($event)">
+        <div class="grid select-none grid-cols-[3.5rem_1fr] gap-px sm:grid-cols-[3.5rem_repeat(7,4.5rem)]" x-on:pointerdown="start($event)" x-on:pointermove="move($event)">
             <div></div>
             <template x-for="(day, index) in currentWeek" :key="'head-' + day.date">
                 <div class="flex flex-col items-center px-0.5 pb-2 text-center text-xs font-semibold leading-tight" x-bind:class="{ 'max-sm:hidden': index !== mobileDay, 'opacity-40': !day.inRange }">
