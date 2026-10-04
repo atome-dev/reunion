@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Availability;
 
+use App\Actions\Availability\BusyCells;
 use App\Models\AvailabilityDay;
 use App\Models\Meeting;
 use Carbon\CarbonImmutable;
@@ -60,6 +61,18 @@ class Grid extends Component
             }
         }
 
+        $stored = AvailabilityDay::query()->where('user_id', Auth::id())->whereIn('day', array_keys($days))->pluck('cells', 'day');
+
+        foreach ($days as $day => $cells) {
+            $current = $stored[$day] ?? AvailabilityDay::Empty;
+
+            foreach (array_keys($this->busy[$day] ?? []) as $index) {
+                if ($cells[$index] !== $current[$index]) {
+                    throw ValidationException::withMessages(['days' => __('This availability could not be saved.')]);
+                }
+            }
+        }
+
         DB::transaction(function () use ($days): void {
             foreach ($days as $day => $cells) {
                 if ($cells === AvailabilityDay::Empty) {
@@ -106,6 +119,27 @@ class Grid extends Component
             ->orderBy('day')
             ->pluck('cells', 'day')
             ->all();
+    }
+
+    /**
+     * Cells taken by the user's confirmed meetings on the displayed weeks, with what to show on them.
+     *
+     * @return array<string, array<int, array{title: string, group: string}>>
+     */
+    #[Computed]
+    public function busy(): array
+    {
+        [$first, $last] = $this->shownBounds();
+        $busy = (new BusyCells)(
+            [Auth::id()],
+            $first->startOfWeek(CarbonInterface::MONDAY)->toDateString(),
+            $last->endOfWeek(CarbonInterface::SUNDAY)->toDateString(),
+        )[Auth::id()] ?? [];
+
+        return array_map(
+            fn (array $cells): array => array_map(fn (array $meeting): array => ['title' => $meeting['title'], 'group' => $meeting['group']], $cells),
+            $busy,
+        );
     }
 
     /**

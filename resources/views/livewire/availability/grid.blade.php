@@ -1,6 +1,7 @@
 <div
     data-cells="{{ json_encode($this->cells, JSON_FORCE_OBJECT) }}"
-    x-data="availabilityGrid({ weeks: @js($this->weeks), canEdit: @js($this->canEdit), labels: @js(['0' => __('Unavailable'), 'p' => __('On site'), 'd' => __('Remote')]), times: @js(array_map(fn (int $cell): string => \App\Models\AvailabilityDay::cellTime($cell), range(0, \App\Models\AvailabilityDay::CellCount - 1))) })"
+    data-busy="{{ json_encode($this->busy, JSON_FORCE_OBJECT) }}"
+    x-data="availabilityGrid({ weeks: @js($this->weeks), canEdit: @js($this->canEdit), labels: @js(['0' => __('Unavailable'), 'p' => __('On site'), 'd' => __('Remote'), 'busy' => __('Meeting'), 'busyTitle' => __('Meeting: :title (:group)')]), times: @js(array_map(fn (int $cell): string => \App\Models\AvailabilityDay::cellTime($cell), range(0, \App\Models\AvailabilityDay::CellCount - 1))) })"
     x-on:pointerup.window="end()"
     x-on:pointercancel.window="cancel()"
     class="flex flex-col gap-4"
@@ -9,6 +10,7 @@
         <div class="flex flex-wrap items-center gap-3 text-sm">
             <span class="inline-flex items-center gap-1.5"><span class="size-4 rounded bg-onsite"></span>{{ __('On site') }}</span>
             <span class="inline-flex items-center gap-1.5"><span class="size-4 rounded bg-remote"></span>{{ __('Remote') }}</span>
+            <span class="inline-flex items-center gap-1.5"><span class="size-4 rounded bg-sun"></span>{{ __('Meeting') }}</span>
             <span class="inline-flex items-center gap-1.5"><span class="size-4 rounded border border-zinc-300 dark:border-white/20"></span>{{ __('Unavailable') }}</span>
         </div>
         <flux:text size="sm">
@@ -68,17 +70,19 @@
                         x-on:keydown="key($event, day.date, {{ $cell }})"
                         x-on:focus="focusDate = day.date; focusIndex = {{ $cell }}"
                         x-bind:tabindex="(focusDate === day.date && focusIndex === {{ $cell }}) ? 0 : -1"
-                        x-bind:disabled="!canEdit || !day.inRange"
+                        x-bind:disabled="!canEdit || !day.inRange || isBusy(day.date, {{ $cell }})"
+                        x-bind:title="busyTitle(day.date, {{ $cell }})"
                         x-bind:aria-label="label(day, {{ $cell }})"
                         class="h-5 rounded-sm border border-zinc-200 transition-colors disabled:cursor-not-allowed dark:border-white/10 @if ($cell % 2 === 1) mb-0.5 @endif"
                         style="touch-action: pan-y;"
                         x-bind:class="{
                             'max-sm:hidden': index !== mobileDay,
-                            'bg-zinc-100 dark:bg-white/5': !day.inRange && value(day.date, {{ $cell }}) === '0',
+                            'bg-zinc-100 dark:bg-white/5': !day.inRange && value(day.date, {{ $cell }}) === '0' && !isBusy(day.date, {{ $cell }}),
                             'opacity-40': !day.inRange && value(day.date, {{ $cell }}) !== '0',
-                            'bg-onsite': value(day.date, {{ $cell }}) === 'p',
-                            'bg-remote': value(day.date, {{ $cell }}) === 'd',
-                            'bg-white dark:bg-night': day.inRange && value(day.date, {{ $cell }}) === '0',
+                            'bg-sun': isBusy(day.date, {{ $cell }}),
+                            'bg-onsite': value(day.date, {{ $cell }}) === 'p' && !isBusy(day.date, {{ $cell }}),
+                            'bg-remote': value(day.date, {{ $cell }}) === 'd' && !isBusy(day.date, {{ $cell }}),
+                            'bg-white dark:bg-night': day.inRange && value(day.date, {{ $cell }}) === '0' && !isBusy(day.date, {{ $cell }}),
                         }"></button>
                 </template>
             @endforeach

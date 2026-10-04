@@ -149,6 +149,8 @@
     "Manage your passkeys for passwordless sign-in": "Gérez vos clés d'accès pour vous connecter sans mot de passe",
     "Manage your profile and account settings": "Gérez votre profil et les réglages de votre compte",
     "Manage your two-factor authentication settings": "Gérez la double authentification",
+    "Meeting": "Réunion",
+    "Meeting: :title (:group)": "Réunion : :title (:group)",
     "Meetings": "Réunions",
     "Members": "Membres",
     "Members will color their availability over this range, on site or remotely.": "Les membres colorieront leurs disponibilités sur cette période, sur place ou à distance.",

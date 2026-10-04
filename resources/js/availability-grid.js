@@ -9,6 +9,7 @@ document.addEventListener('alpine:init', () => {
     window.Alpine.data('availabilityGrid', ({ weeks, canEdit, labels, times }) => ({
         weeks,
         cells: {},
+        busy: {},
         canEdit,
         labels,
         times,
@@ -27,6 +28,7 @@ document.addEventListener('alpine:init', () => {
 
         init() {
             this.cells = { ...JSON.parse(this.$el.dataset.cells || '{}') };
+            this.busy = JSON.parse(this.$el.dataset.busy || '{}');
             this.mobileDay = this.firstDayIndex();
             this.focusDate = this.currentWeek[this.mobileDay]?.date ?? null;
             // Only a non-passive listener can stop the page from scrolling while a long-press paint is under way.
@@ -55,14 +57,28 @@ document.addEventListener('alpine:init', () => {
             return (this.cells[date] ?? EMPTY)[index];
         },
 
+        isBusy(date, index) {
+            return Boolean(this.busy[date]?.[index]);
+        },
+
+        busyTitle(date, index) {
+            const meeting = this.busy[date]?.[index];
+
+            return meeting ? this.labels.busyTitle.replace(':title', meeting.title).replace(':group', meeting.group) : null;
+        },
+
         label(day, index) {
+            if (this.isBusy(day.date, index)) {
+                return `${day.label} ${this.times[index]} — ${this.busyTitle(day.date, index)}`;
+            }
+
             return `${day.label} ${this.times[index]} — ${this.labels[this.value(day.date, index)]}`;
         },
 
         set(date, index, value) {
             const day = this.currentWeek.find((candidate) => candidate.date === date);
 
-            if (!this.canEdit || !day?.inRange || this.value(date, index) === value) {
+            if (!this.canEdit || !day?.inRange || this.isBusy(date, index) || this.value(date, index) === value) {
                 return;
             }
 
@@ -109,6 +125,10 @@ document.addEventListener('alpine:init', () => {
 
             const { date } = cell.dataset;
             const index = Number(cell.dataset.index);
+
+            if (this.isBusy(date, index)) {
+                return;
+            }
 
             if (event.pointerType === 'touch') {
                 // A touch may be a scroll: wait for a long press before painting, a quick tap cycles the cell.
@@ -220,10 +240,20 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
+        // Source values copied onto the target, except where either day has a meeting (the target keeps its own).
+        mergeInto(sourceDate, targetDate) {
+            const source = this.cells[sourceDate] ?? EMPTY;
+            const target = this.cells[targetDate] ?? EMPTY;
+
+            return [...target].map((value, index) => (this.isBusy(targetDate, index) || this.isBusy(sourceDate, index) ? value : source[index])).join('');
+        },
+
         copyToWeek(date) {
             this.currentWeek.filter((day) => day.inRange && day.date !== date).forEach((day) => {
-                if ((this.cells[day.date] ?? EMPTY) !== (this.cells[date] ?? EMPTY)) {
-                    this.cells[day.date] = this.cells[date] ?? EMPTY;
+                const merged = this.mergeInto(date, day.date);
+
+                if ((this.cells[day.date] ?? EMPTY) !== merged) {
+                    this.cells[day.date] = merged;
                     this.dirty.add(day.date);
                 }
             });
@@ -245,10 +275,10 @@ document.addEventListener('alpine:init', () => {
                     return;
                 }
 
-                const cells = this.cells[day.date] ?? EMPTY;
+                const merged = this.mergeInto(day.date, target.date);
 
-                if ((this.cells[target.date] ?? EMPTY) !== cells) {
-                    this.cells[target.date] = cells;
+                if ((this.cells[target.date] ?? EMPTY) !== merged) {
+                    this.cells[target.date] = merged;
                     this.dirty.add(target.date);
                 }
             });
