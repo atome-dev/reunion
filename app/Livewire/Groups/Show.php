@@ -188,7 +188,10 @@ class Show extends Component
     #[Computed]
     public function members(): Collection
     {
-        return $this->group->members()->orderBy('name')->get();
+        return $this->group->members()
+            ->orderByRaw('users.id = ? desc', [$this->group->owner_id])
+            ->orderBy('name')
+            ->get();
     }
 
     /**

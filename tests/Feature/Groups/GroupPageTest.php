@@ -26,6 +26,21 @@ test('members see the group, its members and its meetings', function () {
         ->assertSee('Assemblée de rentrée');
 });
 
+test('the members list shows the count, the creator first, then names in order', function () {
+    $this->organizer->update(['name' => 'Zoé']);
+    $this->group->addMember(User::factory()->create(['name' => 'Amina']));
+
+    $this->actingAs($this->member)
+        ->get(route('groups.show', $this->group))
+        ->assertSee(__('Members').' · 3')
+        ->assertSeeInOrder(['Zoé', 'Amina', 'Bastien']);
+});
+
+test('only the group creator sees the members email addresses', function () {
+    $this->actingAs($this->organizer)->get(route('groups.show', $this->group))->assertSee($this->member->email);
+    $this->actingAs($this->member)->get(route('groups.show', $this->group))->assertDontSee($this->organizer->email);
+});
+
 test('outsiders get a 404', function () {
     $this->actingAs(User::factory()->create())
         ->get(route('groups.show', $this->group))

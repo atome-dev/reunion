@@ -64,67 +64,50 @@
     </section>
 
     <section class="flex flex-col gap-4">
-        <flux:heading size="lg" level="2">{{ __('Members') }}</flux:heading>
+        <flux:heading size="lg" level="2">{{ __('Members') }} · {{ $this->members->count() }}</flux:heading>
         <flux:card class="p-0!">
-            <flux:table>
-                <flux:table.columns>
-                    <flux:table.column>{{ __('Name') }}</flux:table.column>
-                    <flux:table.column>{{ __('Role') }}</flux:table.column>
-                    @if ($this->canUpdate)
-                        <flux:table.column><span class="sr-only">{{ __('Actions') }}</span></flux:table.column>
-                    @endif
-                </flux:table.columns>
-                <flux:table.rows>
-                    @foreach ($this->members as $member)
-                        <flux:table.row :key="'member-'.$member->id">
-                            <flux:table.cell class="flex items-center gap-3">
-                                <flux:avatar :name="$member->name" :initials="$member->initials()" size="xs" />
-                                {{ $member->name }}
-                            </flux:table.cell>
-                            <flux:table.cell>
+            <ul class="divide-y divide-zinc-200 dark:divide-white/10">
+                @foreach ($this->members as $member)
+                    <li wire:key="member-{{ $member->id }}" class="flex items-center gap-3 px-4 py-3">
+                        <flux:avatar :name="$member->name" :initials="$member->initials()" size="sm" />
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="font-medium">{{ $member->name }}</span>
                                 @if ($group->isCreator($member))
                                     <flux:badge size="sm" color="yellow">{{ __('Group creator') }}</flux:badge>
-                                @else
-                                    <flux:badge size="sm">{{ __('Member') }}</flux:badge>
                                 @endif
-                            </flux:table.cell>
+                            </div>
                             @if ($this->canUpdate)
-                                <flux:table.cell align="end">
-                                    @unless ($group->isCreator($member))
-                                        <flux:button size="sm" variant="ghost" icon="x-mark" wire:click="removeMember({{ $member->id }})" wire:confirm="{{ __('Remove :name from the group?', ['name' => $member->name]) }}" :aria-label="__('Remove :name from the group?', ['name' => $member->name])" />
-                                    @endunless
-                                </flux:table.cell>
+                                <flux:text size="sm" class="truncate">{{ $member->email }}</flux:text>
                             @endif
-                        </flux:table.row>
-                    @endforeach
-                </flux:table.rows>
-            </flux:table>
+                        </div>
+                        @if ($this->canUpdate && ! $group->isCreator($member))
+                            <flux:button size="sm" variant="ghost" icon="x-mark" wire:click="removeMember({{ $member->id }})" wire:confirm="{{ __('Remove :name from the group?', ['name' => $member->name]) }}" :aria-label="__('Remove :name from the group?', ['name' => $member->name])" />
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
         </flux:card>
 
         @if ($this->canInvite)
             @if ($this->pendingInvitations->isNotEmpty())
+                <flux:heading level="3">{{ __('Pending invitations') }} · {{ $this->pendingInvitations->count() }}</flux:heading>
                 <flux:card class="p-0!">
-                    <flux:table>
-                        <flux:table.columns>
-                            <flux:table.column>{{ __('Email address') }}</flux:table.column>
-                            <flux:table.column>{{ __('Status') }}</flux:table.column>
-                            <flux:table.column><span class="sr-only">{{ __('Actions') }}</span></flux:table.column>
-                        </flux:table.columns>
-                        <flux:table.rows>
-                            @foreach ($this->pendingInvitations as $invitation)
-                                <flux:table.row :key="'invitation-'.$invitation->id">
-                                    <flux:table.cell>{{ $invitation->email }}</flux:table.cell>
-                                    <flux:table.cell>
-                                        <flux:badge size="sm" :color="$invitation->isUsable() ? 'sky' : 'zinc'">{{ $invitation->isUsable() ? __('Invitation sent') : __('Invitation expired') }}</flux:badge>
-                                    </flux:table.cell>
-                                    <flux:table.cell align="end">
-                                        <flux:button size="xs" variant="ghost" wire:click="resendInvitation({{ $invitation->id }})">{{ __('Resend') }}</flux:button>
-                                        <flux:button size="xs" variant="ghost" wire:click="cancelInvitation({{ $invitation->id }})">{{ __('Cancel') }}</flux:button>
-                                    </flux:table.cell>
-                                </flux:table.row>
-                            @endforeach
-                        </flux:table.rows>
-                    </flux:table>
+                    <ul class="divide-y divide-zinc-200 dark:divide-white/10">
+                        @foreach ($this->pendingInvitations as $invitation)
+                            <li wire:key="invitation-{{ $invitation->id }}" class="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
+                                <flux:icon.envelope variant="mini" class="shrink-0 text-zinc-400" />
+                                <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+                                    <span class="truncate">{{ $invitation->email }}</span>
+                                    <flux:badge size="sm" :color="$invitation->isUsable() ? 'sky' : 'zinc'">{{ $invitation->isUsable() ? __('Invitation sent') : __('Invitation expired') }}</flux:badge>
+                                </div>
+                                <div class="flex gap-1">
+                                    <flux:button size="xs" variant="ghost" wire:click="resendInvitation({{ $invitation->id }})">{{ __('Resend') }}</flux:button>
+                                    <flux:button size="xs" variant="ghost" wire:click="cancelInvitation({{ $invitation->id }})">{{ __('Cancel') }}</flux:button>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
                 </flux:card>
             @endif
 
