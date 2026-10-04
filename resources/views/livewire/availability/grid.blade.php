@@ -1,5 +1,6 @@
 <div
-    x-data="availabilityGrid({ weeks: @js($this->weeks), cells: @js($this->cells), canEdit: @js($this->canEdit), labels: @js(['0' => __('Unavailable'), 'p' => __('On site'), 'd' => __('Remote')]), times: @js(array_map(fn (int $cell): string => \App\Models\AvailabilityDay::cellTime($cell), range(0, \App\Models\AvailabilityDay::CellCount - 1))) })"
+    data-cells="{{ json_encode($this->cells, JSON_FORCE_OBJECT) }}"
+    x-data="availabilityGrid({ weeks: @js($this->weeks), canEdit: @js($this->canEdit), labels: @js(['0' => __('Unavailable'), 'p' => __('On site'), 'd' => __('Remote')]), times: @js(array_map(fn (int $cell): string => \App\Models\AvailabilityDay::cellTime($cell), range(0, \App\Models\AvailabilityDay::CellCount - 1))) })"
     x-on:pointerup.window="end()"
     x-on:pointercancel.window="cancel()"
     class="flex flex-col gap-4"

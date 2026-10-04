@@ -4,9 +4,11 @@ const LONG_PRESS_MS = 300;
 const MOVE_TOLERANCE = 8;
 
 document.addEventListener('alpine:init', () => {
-    window.Alpine.data('availabilityGrid', ({ weeks, cells, canEdit, labels, times }) => ({
+    // Saved cells come through data-cells, read once: keeping them out of x-data stops a Livewire
+    // re-render from re-initialising the grid (which sent the user back to the first week).
+    window.Alpine.data('availabilityGrid', ({ weeks, canEdit, labels, times }) => ({
         weeks,
-        cells: { ...cells },
+        cells: {},
         canEdit,
         labels,
         times,
@@ -23,6 +25,7 @@ document.addEventListener('alpine:init', () => {
         status: 'idle',
 
         init() {
+            this.cells = { ...JSON.parse(this.$el.dataset.cells || '{}') };
             this.mobileDay = this.firstDayIndex();
             this.focusDate = this.currentWeek[this.mobileDay]?.date ?? null;
             // Only a non-passive listener can stop the page from scrolling while a long-press paint is under way.

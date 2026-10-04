@@ -115,3 +115,13 @@ test('saveDays reports success to the browser', function () {
         ->call('saveDays', ['2026-11-04' => str_repeat('p', 28)])
         ->assertReturned(true);
 });
+
+test('saving keeps the grid state in the browser, so it stays on the shown week', function () {
+    $component = Livewire::actingAs($this->member)->test(Grid::class);
+    $xData = fn (): string => preg_match('/x-data="([^"]*)"/', $component->html(), $matches) ? $matches[1] : '';
+    $before = $xData();
+
+    $component->call('saveDays', ['2026-11-20' => str_repeat('p', 28)])->assertHasNoErrors();
+
+    expect($xData())->toBe($before);
+});
