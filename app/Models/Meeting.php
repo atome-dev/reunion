@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -74,6 +75,23 @@ class Meeting extends Model
     public function slots(): HasMany
     {
         return $this->hasMany(MeetingSlot::class)->orderBy('starts_at');
+    }
+
+    /** @return HasMany<MeetingDecline, $this> */
+    public function declines(): HasMany
+    {
+        return $this->hasMany(MeetingDecline::class);
+    }
+
+    /** @return BelongsToMany<User, $this> */
+    public function decliners(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'meeting_declines')->withTimestamps();
+    }
+
+    public function isDeclinedBy(User $user): bool
+    {
+        return $this->declines()->where('user_id', $user->id)->exists();
     }
 
     /**

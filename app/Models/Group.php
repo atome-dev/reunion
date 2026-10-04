@@ -111,6 +111,8 @@ class Group extends Model
                 ->whereIn('meeting_slot_id', MeetingSlot::query()->select('id')->whereIn('meeting_id', $meetingIds))
                 ->delete();
 
+            MeetingDecline::query()->where('user_id', $user->id)->whereIn('meeting_id', $meetingIds)->delete();
+
             $this->members()->detach($user->id);
         });
     }

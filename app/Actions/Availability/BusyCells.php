@@ -35,7 +35,7 @@ class BusyCells
                 CarbonImmutable::parse($to, $timezone)->endOfDay()->utc(),
             ])
             ->whereHas('group.members', fn (Builder $members) => $members->whereIn('users.id', $userIds))
-            ->with(['group:id,name', 'group.members:users.id'])
+            ->with(['group:id,name', 'group.members:users.id', 'declines:id,meeting_id,user_id'])
             ->orderBy('confirmed_starts_at')
             ->get();
 
@@ -52,8 +52,10 @@ class BusyCells
             $last = min(AvailabilityDay::CellCount, (int) ceil($endMinutes / 30));
             $info = ['meetingId' => $meeting->id, 'title' => $meeting->title, 'group' => $meeting->group->name];
 
+            $declinedBy = $meeting->declines->pluck('user_id')->all();
+
             foreach ($meeting->group->members as $member) {
-                if (! in_array($member->id, $userIds, true)) {
+                if (! in_array($member->id, $userIds, true) || in_array($member->id, $declinedBy, true)) {
                     continue;
                 }
 

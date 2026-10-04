@@ -45,6 +45,18 @@ class MeetingPolicy
     }
 
     /**
+     * Say one will not come to a confirmed meeting, or take it back.
+     */
+    public function decline(User $user, Meeting $meeting): Response
+    {
+        if (! $meeting->group->hasMember($user)) {
+            return Response::denyAsNotFound();
+        }
+
+        return $meeting->status === MeetingStatus::Confirmed ? Response::allow() : Response::denyWithStatus(403);
+    }
+
+    /**
      * Fill in one's own availability grid, while the request is collecting.
      */
     public function editAvailability(User $user, Meeting $meeting): bool
