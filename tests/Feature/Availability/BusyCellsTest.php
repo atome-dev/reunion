@@ -59,6 +59,21 @@ test('cells follow Paris time across DST', function () {
     expect(array_keys($busy[$this->member->id]['2026-10-25']))->toBe([21, 22, 23, 24]);
 });
 
+test('edge times map to the right cells', function (string $start, string $end, array $cells) {
+    $day = '2026-11-12';
+    Meeting::factory()->for($this->groupA)
+        ->confirmed(CarbonImmutable::parse("$day $start", 'Europe/Paris')->utc())
+        ->create(['confirmed_ends_at' => CarbonImmutable::parse("$day $end", 'Europe/Paris')->utc()]);
+
+    $busy = (new BusyCells)([$this->member->id], $day, $day);
+
+    expect(array_keys($busy[$this->member->id][$day]))->toBe($cells);
+})->with([
+    'non-aligned 18:10-19:20' => ['18:10', '19:20', [20, 21, 22]],
+    'start of grid 07:00-09:00' => ['07:00', '09:00', [0, 1]],
+    'end of grid 21:00-23:30' => ['21:00', '23:30', [26, 27]],
+]);
+
 test('other groups only see unavailability', function () {
     $groupB = Group::factory()->create();
     $groupB->addMember($this->member);

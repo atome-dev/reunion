@@ -25,19 +25,25 @@ test('the grid exposes the meeting cells to each member', function () {
         ->and($busy['2026-11-05'][20])->toBe(['title' => 'Conseil', 'group' => 'Bureau']);
 });
 
-test('changes under a meeting are refused, the rest of the day is accepted', function () {
-    $underMeeting = str_repeat('0', 20).'p'.str_repeat('0', 7);
-    $beside = 'pp'.str_repeat('0', 26);
+test('changes under a meeting are ignored, the rest of the day is saved', function () {
+    $mixed = 'pp'.str_repeat('0', 18).'pp'.str_repeat('0', 6);
 
     Livewire::actingAs($this->member)->test(Grid::class)
-        ->call('saveDays', ['2026-11-05' => $underMeeting])
-        ->assertHasErrors('days');
-
-    Livewire::actingAs($this->member)->test(Grid::class)
-        ->call('saveDays', ['2026-11-05' => $beside])
+        ->call('saveDays', ['2026-11-05' => $mixed])
         ->assertHasNoErrors();
 
-    expect(AvailabilityDay::where('user_id', $this->member->id)->value('cells'))->toBe($beside);
+    expect(AvailabilityDay::where('user_id', $this->member->id)->value('cells'))->toBe('pp'.str_repeat('0', 26));
+});
+
+test('a stored value under a meeting is kept when the client sends another one', function () {
+    $evening = str_repeat('0', 20).'dddd0000';
+    AvailabilityDay::factory()->for($this->member)->cells($evening)->create(['day' => '2026-11-05']);
+
+    Livewire::actingAs($this->member)->test(Grid::class)
+        ->call('saveDays', ['2026-11-05' => 'p'.str_repeat('0', 19).'pppp0000'])
+        ->assertHasNoErrors();
+
+    expect(AvailabilityDay::where('user_id', $this->member->id)->value('cells'))->toBe('p'.str_repeat('0', 19).'dddd0000');
 });
 
 test('availability filled before the meeting is kept and can still be saved unchanged', function () {

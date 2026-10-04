@@ -29,7 +29,7 @@ Complète `2026-10-03-disponibilites-personnelles-design.md` (point « hors pér
 - **`Availability\Grid`** :
   - nouveau computed `busy(): array<string, array<int, array{title: string, group: string, url: string}>>` sur les jours affichés pour `Auth::id()` (hors la réunion affichée si elle est confirmée — inutile puisque la grille d'une réunion confirmée n'est pas affichée, mais sans effet) ;
   - transmis au navigateur dans un attribut `data-busy` (comme `data-cells`, hors de `x-data` pour ne pas réinitialiser la grille) ;
-  - `saveDays` refuse (`ValidationException` sur `days`, message existant) toute journée où une case occupée a une valeur différente de celle déjà stockée (`0` si rien n'est stocké) → le serveur garantit qu'on ne modifie rien sous une réunion ; le navigateur conserve d'ailleurs ces cases telles quelles.
+  - `saveDays` ignore tout changement sur une case occupée (la valeur déjà stockée, ou `0`, est conservée) et enregistre le reste de la journée → le serveur garantit qu'on ne modifie rien sous une réunion, sans erreur bloquante si la page est périmée ; le navigateur conserve d'ailleurs ces cases telles quelles.
 - **JS `availability-grid.js`** :
   - lit `data-busy` au démarrage ;
   - `set()` ignore une case occupée ; `copyToWeek` et `copyWeekToNext` conservent la valeur existante des cases occupées de la cible (et ne recopient pas l'état « Réunion ») ;

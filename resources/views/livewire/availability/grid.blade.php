@@ -1,7 +1,7 @@
 <div
     data-cells="{{ json_encode($this->cells, JSON_FORCE_OBJECT) }}"
     data-busy="{{ json_encode($this->busy, JSON_FORCE_OBJECT) }}"
-    x-data="availabilityGrid({ weeks: @js($this->weeks), canEdit: @js($this->canEdit), labels: @js(['0' => __('Unavailable'), 'p' => __('On site'), 'd' => __('Remote'), 'busy' => __('Meeting'), 'busyTitle' => __('Meeting: :title (:group)')]), times: @js(array_map(fn (int $cell): string => \App\Models\AvailabilityDay::cellTime($cell), range(0, \App\Models\AvailabilityDay::CellCount - 1))) })"
+    x-data="availabilityGrid({ weeks: @js($this->weeks), canEdit: @js($this->canEdit), labels: @js(['0' => __('Unavailable'), 'p' => __('On site'), 'd' => __('Remote'), 'busyTitle' => __('Meeting: :title (:group)')]), times: @js(array_map(fn (int $cell): string => \App\Models\AvailabilityDay::cellTime($cell), range(0, \App\Models\AvailabilityDay::CellCount - 1))) })"
     x-on:pointerup.window="end()"
     x-on:pointercancel.window="cancel()"
     class="flex flex-col gap-4"
@@ -70,10 +70,11 @@
                         x-on:keydown="key($event, day.date, {{ $cell }})"
                         x-on:focus="focusDate = day.date; focusIndex = {{ $cell }}"
                         x-bind:tabindex="(focusDate === day.date && focusIndex === {{ $cell }}) ? 0 : -1"
-                        x-bind:disabled="!canEdit || !day.inRange || isBusy(day.date, {{ $cell }})"
+                        x-bind:disabled="!canEdit || !day.inRange"
+                        x-bind:aria-disabled="isBusy(day.date, {{ $cell }}) ? 'true' : null"
                         x-bind:title="busyTitle(day.date, {{ $cell }})"
                         x-bind:aria-label="label(day, {{ $cell }})"
-                        class="h-5 rounded-sm border border-zinc-200 transition-colors disabled:cursor-not-allowed dark:border-white/10 @if ($cell % 2 === 1) mb-0.5 @endif"
+                        class="h-5 rounded-sm border border-zinc-200 transition-colors disabled:cursor-not-allowed aria-disabled:cursor-not-allowed dark:border-white/10 @if ($cell % 2 === 1) mb-0.5 @endif"
                         style="touch-action: pan-y;"
                         x-bind:class="{
                             'max-sm:hidden': index !== mobileDay,

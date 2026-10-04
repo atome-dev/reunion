@@ -64,7 +64,7 @@ document.addEventListener('alpine:init', () => {
         busyTitle(date, index) {
             const meeting = this.busy[date]?.[index];
 
-            return meeting ? this.labels.busyTitle.replace(':title', meeting.title).replace(':group', meeting.group) : null;
+            return meeting ? this.labels.busyTitle.replace(/:(title|group)/g, (_, key) => meeting[key]) : null;
         },
 
         label(day, index) {
@@ -301,8 +301,31 @@ document.addEventListener('alpine:init', () => {
                 this.status = 'error';
             };
 
+            // The server keeps the stored value under a meeting: pick up meetings confirmed since the page opened.
+            const refreshBusy = () => this.$nextTick(() => {
+                this.busy = JSON.parse(this.$el.dataset.busy || '{}');
+                const stored = JSON.parse(this.$el.dataset.cells || '{}');
+
+                Object.keys(days).filter((date) => !this.dirty.has(date)).forEach((date) => {
+                    const current = this.cells[date] ?? EMPTY;
+                    const kept = stored[date] ?? EMPTY;
+                    const merged = [...current].map((value, index) => (this.isBusy(date, index) ? kept[index] : value)).join('');
+
+                    if (merged !== current) {
+                        this.cells[date] = merged;
+                    }
+                });
+            });
+
             this.$wire.saveDays(days)
-                .then((saved) => (saved === true ? (this.status = 'saved') : fail()))
+                .then((saved) => {
+                    if (saved !== true) {
+                        return fail();
+                    }
+
+                    this.status = 'saved';
+                    refreshBusy();
+                })
                 .catch(fail);
         },
     }));

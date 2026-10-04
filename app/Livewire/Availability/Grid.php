@@ -67,10 +67,10 @@ class Grid extends Component
             $current = $stored[$day] ?? AvailabilityDay::Empty;
 
             foreach (array_keys($this->busy[$day] ?? []) as $index) {
-                if ($cells[$index] !== $current[$index]) {
-                    throw ValidationException::withMessages(['days' => __('This availability could not be saved.')]);
-                }
+                $cells[$index] = $current[$index];
             }
+
+            $days[$day] = $cells;
         }
 
         DB::transaction(function () use ($days): void {
