@@ -30,7 +30,7 @@ class Show extends Component
 
     public function deleteMeeting(): void
     {
-        $this->authorize('manage', $this->meeting);
+        $this->authorize('update', $this->meeting);
 
         $this->meeting->delete();
 
@@ -39,6 +39,6 @@ class Show extends Component
 
     public function isOrganizer(): bool
     {
-        return $this->meeting->group->isOrganizer(Auth::user());
+        return $this->meeting->group->isCreator(Auth::user());
     }
 }

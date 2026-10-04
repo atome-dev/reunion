@@ -16,9 +16,32 @@ class MeetingPolicy
         return $this->groups->view($user, $meeting->group);
     }
 
-    public function manage(User $user, Meeting $meeting): Response
+    /**
+     * Edit or delete the request: its author or the group creator.
+     */
+    public function update(User $user, Meeting $meeting): Response
     {
-        return $this->groups->manage($user, $meeting->group);
+        $group = $meeting->group;
+
+        if (! $group->hasMember($user)) {
+            return Response::denyAsNotFound();
+        }
+
+        return $meeting->created_by === $user->id || $group->isCreator($user) ? Response::allow() : Response::denyWithStatus(403);
+    }
+
+    /**
+     * See the summary, confirm a date, open, settle or cancel the vote.
+     */
+    public function validate(User $user, Meeting $meeting): Response
+    {
+        $group = $meeting->group;
+
+        if (! $group->hasMember($user)) {
+            return Response::denyAsNotFound();
+        }
+
+        return $group->allowsValidation($user) ? Response::allow() : Response::denyWithStatus(403);
     }
 
     /**

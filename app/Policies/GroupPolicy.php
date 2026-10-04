@@ -17,19 +17,37 @@ class GroupPolicy
     }
 
     /**
-     * Rename, delete, invite, manage members and create meetings.
+     * Rename, delete, remove members and change the settings: the group creator only.
      */
-    public function manage(User $user, Group $group): Response
+    public function update(User $user, Group $group): Response
+    {
+        return $this->allowMember($user, $group, $group->isCreator($user));
+    }
+
+    public function requestMeeting(User $user, Group $group): Response
+    {
+        return $this->allowMember($user, $group, $group->allowsMeetingRequests($user));
+    }
+
+    /**
+     * Invite people, resend or cancel pending invitations.
+     */
+    public function invite(User $user, Group $group): Response
+    {
+        return $this->allowMember($user, $group, $group->allowsInvitations($user));
+    }
+
+    public function leave(User $user, Group $group): bool
+    {
+        return $group->hasMember($user) && ! $group->isCreator($user);
+    }
+
+    private function allowMember(User $user, Group $group, bool $allowed): Response
     {
         if (! $group->hasMember($user)) {
             return Response::denyAsNotFound();
         }
 
-        return $group->isOrganizer($user) ? Response::allow() : Response::denyWithStatus(403);
-    }
-
-    public function leave(User $user, Group $group): bool
-    {
-        return $group->hasMember($user) && ! $group->isOrganizer($user);
+        return $allowed ? Response::allow() : Response::denyWithStatus(403);
     }
 }

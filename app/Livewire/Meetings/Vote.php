@@ -74,7 +74,7 @@ class Vote extends Component
 
     public function confirmSlot(int $slotId, ConfirmMeeting $confirmMeeting): void
     {
-        $this->authorize('manage', $this->meeting);
+        $this->authorize('validate', $this->meeting);
 
         $slot = $this->meeting->slots()->findOrFail($slotId);
 
@@ -83,7 +83,7 @@ class Vote extends Component
 
     public function cancelVote(CancelVote $cancelVote): void
     {
-        $this->authorize('manage', $this->meeting);
+        $this->authorize('validate', $this->meeting);
 
         $this->applyTransition(fn () => $cancelVote($this->meeting));
     }
@@ -91,7 +91,7 @@ class Vote extends Component
     #[Computed]
     public function isOrganizer(): bool
     {
-        return $this->meeting->group->isOrganizer(Auth::user());
+        return $this->meeting->group->isCreator(Auth::user());
     }
 
     /**

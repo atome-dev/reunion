@@ -38,7 +38,7 @@ class Summary extends Component
 
     public function mount(Meeting $meeting): void
     {
-        $this->authorize('manage', $meeting);
+        $this->authorize('validate', $meeting);
 
         $this->meeting = $meeting;
         $this->normalizeSettings();
@@ -46,7 +46,7 @@ class Summary extends Component
 
     public function hydrate(): void
     {
-        $this->authorize('manage', $this->meeting);
+        $this->authorize('validate', $this->meeting);
     }
 
     public function updated(string $property): void
@@ -81,7 +81,7 @@ class Summary extends Component
 
     public function confirmWindow(string $key, ConfirmMeeting $confirmMeeting): void
     {
-        $this->authorize('manage', $this->meeting);
+        $this->authorize('validate', $this->meeting);
 
         [$startsAt, $endsAt] = $this->chosenSlot($key);
 
@@ -90,7 +90,7 @@ class Summary extends Component
 
     public function openVote(OpenVote $openVote): void
     {
-        $this->authorize('manage', $this->meeting);
+        $this->authorize('validate', $this->meeting);
 
         $slots = array_map(fn (string $key): array => $this->chosenSlot($key, 'selected'), array_values(array_unique($this->selected)));
 

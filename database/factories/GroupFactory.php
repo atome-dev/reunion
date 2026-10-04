@@ -25,6 +25,15 @@ class GroupFactory extends Factory
         ];
     }
 
+    public function openToMembers(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'members_can_request_meetings' => true,
+            'members_can_invite' => true,
+            'members_can_validate' => true,
+        ]);
+    }
+
     public function configure(): static
     {
         return $this->afterCreating(fn (Group $group) => $group->addMember($group->owner, GroupRole::Organizer));

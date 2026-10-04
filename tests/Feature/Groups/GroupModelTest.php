@@ -12,7 +12,7 @@ use App\Models\User;
 test('the owner of a new group is its organizer', function () {
     $group = Group::factory()->create();
 
-    expect($group->isOrganizer($group->owner))->toBeTrue()
+    expect($group->isCreator($group->owner))->toBeTrue()
         ->and($group->hasMember($group->owner))->toBeTrue()
         ->and($group->members()->first()->pivot->role)->toBe(GroupRole::Organizer->value);
 });

@@ -51,14 +51,14 @@ class Form extends Component
             return;
         }
 
-        $this->authorize('manage', $group);
+        $this->authorize('requestMeeting', $group);
 
         $this->group = $group;
     }
 
     public function hydrate(): void
     {
-        $this->meeting?->exists ? $this->authorizeEditing($this->meeting) : $this->authorize('manage', $this->group);
+        $this->meeting?->exists ? $this->authorizeEditing($this->meeting) : $this->authorize('requestMeeting', $this->group);
     }
 
     public function render(): View
@@ -123,7 +123,7 @@ class Form extends Component
 
     public function deleteMeeting(): void
     {
-        $this->authorize('manage', $this->meeting);
+        $this->authorize('update', $this->meeting);
 
         $this->meeting->delete();
 
@@ -132,7 +132,7 @@ class Form extends Component
 
     private function authorizeEditing(Meeting $meeting): void
     {
-        $this->authorize('manage', $meeting);
+        $this->authorize('update', $meeting);
 
         abort_unless($meeting->status === MeetingStatus::Collecting, 403);
     }

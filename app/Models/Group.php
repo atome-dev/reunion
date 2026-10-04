@@ -16,12 +16,27 @@ use Illuminate\Support\Facades\DB;
  * @property int $id
  * @property string $name
  * @property int $owner_id
+ * @property bool $members_can_request_meetings
+ * @property bool $members_can_invite
+ * @property bool $members_can_validate
  */
-#[Fillable(['name'])]
+#[Fillable(['name', 'members_can_request_meetings', 'members_can_invite', 'members_can_validate'])]
 class Group extends Model
 {
     /** @use HasFactory<GroupFactory> */
     use HasFactory;
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'members_can_request_meetings' => 'boolean',
+            'members_can_invite' => 'boolean',
+            'members_can_validate' => 'boolean',
+        ];
+    }
 
     /** @return BelongsTo<User, $this> */
     public function owner(): BelongsTo
@@ -47,9 +62,30 @@ class Group extends Model
         return $this->hasMany(Meeting::class);
     }
 
-    public function isOrganizer(User $user): bool
+    /**
+     * The user who created the group.
+     */
+    public function isCreator(User $user): bool
     {
         return $this->owner_id === $user->id;
+    }
+
+    /**
+     * Members may request meetings if the creator opened it to them.
+     */
+    public function allowsMeetingRequests(User $user): bool
+    {
+        return $this->hasMember($user) && ($this->isCreator($user) || $this->members_can_request_meetings);
+    }
+
+    public function allowsInvitations(User $user): bool
+    {
+        return $this->hasMember($user) && ($this->isCreator($user) || $this->members_can_invite);
+    }
+
+    public function allowsValidation(User $user): bool
+    {
+        return $this->hasMember($user) && ($this->isCreator($user) || $this->members_can_validate);
     }
 
     public function hasMember(User $user): bool

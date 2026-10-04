@@ -38,7 +38,7 @@ test('creating a group makes the user its organizer and opens it', function () {
         ->assertHasNoErrors()
         ->assertRedirect(route('groups.show', Group::sole()));
 
-    expect(Group::sole()->isOrganizer($user))->toBeTrue();
+    expect(Group::sole()->isCreator($user))->toBeTrue();
 });
 
 test('a group needs a name', function () {

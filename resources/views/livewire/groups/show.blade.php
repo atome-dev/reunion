@@ -79,7 +79,7 @@
                                 {{ $member->name }}
                             </flux:table.cell>
                             <flux:table.cell>
-                                @if ($group->isOrganizer($member))
+                                @if ($group->isCreator($member))
                                     <flux:badge size="sm" color="yellow">{{ __('Organizer') }}</flux:badge>
                                 @else
                                     <flux:badge size="sm">{{ __('Member') }}</flux:badge>
@@ -87,7 +87,7 @@
                             </flux:table.cell>
                             @if ($this->isOrganizer())
                                 <flux:table.cell align="end">
-                                    @unless ($group->isOrganizer($member))
+                                    @unless ($group->isCreator($member))
                                         <flux:button size="sm" variant="ghost" icon="x-mark" wire:click="removeMember({{ $member->id }})" wire:confirm="{{ __('Remove :name from the group?', ['name' => $member->name]) }}" :aria-label="__('Remove :name from the group?', ['name' => $member->name])" />
                                     @endunless
                                 </flux:table.cell>

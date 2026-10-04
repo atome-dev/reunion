@@ -46,7 +46,7 @@ class Show extends Component
 
     public function rename(): void
     {
-        $this->authorize('manage', $this->group);
+        $this->authorize('update', $this->group);
 
         $this->validate(['name' => ['required', 'string', 'max:120']]);
 
@@ -57,7 +57,7 @@ class Show extends Component
 
     public function deleteGroup(): void
     {
-        $this->authorize('manage', $this->group);
+        $this->authorize('update', $this->group);
 
         $this->group->delete();
 
@@ -66,11 +66,11 @@ class Show extends Component
 
     public function removeMember(int $userId): void
     {
-        $this->authorize('manage', $this->group);
+        $this->authorize('update', $this->group);
 
         $member = $this->group->members()->findOrFail($userId);
 
-        abort_if($this->group->isOrganizer($member), 403);
+        abort_if($this->group->isCreator($member), 403);
 
         $this->group->removeMember($member);
     }
@@ -86,7 +86,7 @@ class Show extends Component
 
     public function invite(InviteToGroup $inviteToGroup): void
     {
-        $this->authorize('manage', $this->group);
+        $this->authorize('invite', $this->group);
 
         $result = $inviteToGroup($this->group, Auth::user(), $this->invitationEmails);
 
@@ -102,7 +102,7 @@ class Show extends Component
 
     public function resendInvitation(int $invitationId, SendGroupInvitation $sendGroupInvitation): void
     {
-        $this->authorize('manage', $this->group);
+        $this->authorize('invite', $this->group);
 
         $sendGroupInvitation($this->group->invitations()->whereNull('accepted_at')->findOrFail($invitationId));
 
@@ -111,7 +111,7 @@ class Show extends Component
 
     public function cancelInvitation(int $invitationId): void
     {
-        $this->authorize('manage', $this->group);
+        $this->authorize('invite', $this->group);
 
         $this->group->invitations()->whereNull('accepted_at')->findOrFail($invitationId)->delete();
 
@@ -131,7 +131,7 @@ class Show extends Component
 
     public function isOrganizer(): bool
     {
-        return $this->group->isOrganizer(Auth::user());
+        return $this->group->isCreator(Auth::user());
     }
 
     /**

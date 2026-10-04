@@ -21,12 +21,18 @@ test('only members can see a group and its meetings, others get a 404', function
         ->and(Gate::forUser($this->outsider)->inspect('view', $this->meeting)->status())->toBe(404);
 });
 
-test('only the organizer manages, a member gets a 403 and an outsider a 404', function () {
-    expect(Gate::forUser($this->organizer)->allows('manage', $this->group))->toBeTrue()
-        ->and(Gate::forUser($this->organizer)->allows('manage', $this->meeting))->toBeTrue()
-        ->and(Gate::forUser($this->member)->inspect('manage', $this->group)->status())->toBe(403)
-        ->and(Gate::forUser($this->member)->inspect('manage', $this->meeting)->status())->toBe(403)
-        ->and(Gate::forUser($this->outsider)->inspect('manage', $this->group)->status())->toBe(404);
+test('by default only the creator administers, a member gets a 403 and an outsider a 404', function () {
+    expect(Gate::forUser($this->organizer)->allows('update', $this->group))->toBeTrue()
+        ->and(Gate::forUser($this->organizer)->allows('requestMeeting', $this->group))->toBeTrue()
+        ->and(Gate::forUser($this->organizer)->allows('invite', $this->group))->toBeTrue()
+        ->and(Gate::forUser($this->organizer)->allows('update', $this->meeting))->toBeTrue()
+        ->and(Gate::forUser($this->organizer)->allows('validate', $this->meeting))->toBeTrue()
+        ->and(Gate::forUser($this->member)->inspect('update', $this->group)->status())->toBe(403)
+        ->and(Gate::forUser($this->member)->inspect('requestMeeting', $this->group)->status())->toBe(403)
+        ->and(Gate::forUser($this->member)->inspect('invite', $this->group)->status())->toBe(403)
+        ->and(Gate::forUser($this->member)->inspect('update', $this->meeting)->status())->toBe(403)
+        ->and(Gate::forUser($this->member)->inspect('validate', $this->meeting)->status())->toBe(403)
+        ->and(Gate::forUser($this->outsider)->inspect('update', $this->group)->status())->toBe(404);
 });
 
 test('only members can fill a grid or vote', function () {
