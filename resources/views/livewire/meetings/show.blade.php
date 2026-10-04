@@ -34,7 +34,10 @@
             @if ($meeting->location)
                 <flux:text class="flex items-center gap-1 text-forest!"><flux:icon.map-pin variant="micro" /> {{ $meeting->location }}</flux:text>
             @endif
-            <div><flux:button icon="calendar-days" :href="route('meetings.calendar', $meeting)">{{ __('Add to my calendar') }}</flux:button></div>
+            <div class="flex flex-wrap gap-2">
+                <flux:button icon="calendar-days" :href="(new \App\Actions\Meetings\BuildGoogleCalendarUrl)($meeting)" target="_blank" rel="noopener">{{ __('Add to Google Calendar') }}</flux:button>
+                <flux:button icon="arrow-down-tray" :href="route('meetings.calendar', $meeting)">{{ __('Add to my calendar') }}</flux:button>
+            </div>
         </flux:card>
     @elseif ($meeting->status === MeetingStatus::Voting)
         <livewire:meetings.vote :meeting="$meeting" :key="'vote-'.$meeting->id" />

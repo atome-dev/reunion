@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Actions\Meetings\BuildGoogleCalendarUrl;
 use App\Actions\Meetings\BuildIcsCalendar;
 use App\Models\Meeting;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -31,6 +32,7 @@ class MeetingConfirmedNotification extends Notification
 
         return $mail
             ->action(__('See the meeting'), route('meetings.show', $this->meeting))
+            ->line(__('Using Google Calendar? [Add it in one click](:url). The attached file works with other calendars.', ['url' => (new BuildGoogleCalendarUrl)($this->meeting)]))
             ->attachData((new BuildIcsCalendar)($this->meeting), 'reunion.ics', ['mime' => 'text/calendar']);
     }
 
