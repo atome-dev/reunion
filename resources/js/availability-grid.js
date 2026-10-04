@@ -21,6 +21,7 @@ document.addEventListener('alpine:init', () => {
         pressTimer: null,
         pressCell: null,
         pressOrigin: null,
+        lastPainted: null,
         dirty: new Set(),
         status: 'idle',
 
@@ -74,6 +75,29 @@ document.addEventListener('alpine:init', () => {
             this.painting = true;
             this.paintValue = NEXT[this.value(date, index)];
             this.set(date, index, this.paintValue);
+            this.lastPainted = { date, index };
+        },
+
+        // Pointer events are sparse when the pointer moves fast: paint every cell on the way from the last one.
+        paintTo(date, index) {
+            const days = this.currentWeek.map((day) => day.date);
+            const from = this.lastPainted ?? { date, index };
+            const fromDay = days.indexOf(from.date);
+            const toDay = days.indexOf(date);
+
+            if (fromDay === -1 || toDay === -1) {
+                this.set(date, index, this.paintValue);
+            } else {
+                const steps = Math.max(Math.abs(toDay - fromDay), Math.abs(index - from.index), 1);
+
+                for (let step = 1; step <= steps; step++) {
+                    const day = Math.round(fromDay + ((toDay - fromDay) * step) / steps);
+                    const cell = Math.round(from.index + ((index - from.index) * step) / steps);
+                    this.set(days[day], cell, this.paintValue);
+                }
+            }
+
+            this.lastPainted = { date, index };
         },
 
         start(event) {
@@ -121,7 +145,7 @@ document.addEventListener('alpine:init', () => {
             const cell = document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-cell]');
 
             if (cell) {
-                this.set(cell.dataset.date, Number(cell.dataset.index), this.paintValue);
+                this.paintTo(cell.dataset.date, Number(cell.dataset.index));
             }
         },
 
