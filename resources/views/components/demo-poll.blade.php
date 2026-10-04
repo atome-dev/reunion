@@ -12,8 +12,8 @@
     <div class="mb-4 flex flex-wrap items-center justify-between gap-2 px-1">
         <p @class(['font-bold', 'text-lg' => ! $compact, 'text-sm' => $compact])>{{ $group }} · Assemblée de rentrée</p>
         <p class="flex items-center gap-3 text-xs font-medium sm:text-sm">
-            <span class="inline-flex items-center gap-1"><span class="grid size-5 place-items-center rounded-full bg-forest text-white dark:bg-sun dark:text-forest"><flux:icon.map-pin variant="micro" class="size-3" /></span>en vrai</span>
-            <span class="inline-flex items-center gap-1"><span class="grid size-5 place-items-center rounded-full bg-blush text-forest"><flux:icon.video-camera variant="micro" class="size-3" /></span>en visio</span>
+            <span class="inline-flex items-center gap-1"><span class="grid size-5 place-items-center rounded-full bg-onsite text-white"><flux:icon.map-pin variant="micro" class="size-3" /></span>en vrai</span>
+            <span class="inline-flex items-center gap-1"><span class="grid size-5 place-items-center rounded-full bg-remote text-forest"><flux:icon.video-camera variant="micro" class="size-3" /></span>en visio</span>
         </p>
     </div>
 
@@ -44,9 +44,9 @@
                     @foreach ($member['answers'] as $index => $answer)
                         <td data-col="{{ $index }}" @class(['px-0.5 py-1 text-center sm:px-1.5', 'is-best' => $index === $best])>
                             @if ($answer === \App\View\Components\DemoPoll::OnSite)
-                                <span class="mx-auto grid {{ $chip }} place-items-center rounded-full bg-forest text-white dark:bg-sun dark:text-forest"><flux:icon.map-pin variant="micro" class="{{ $chipIcon }}" /><span class="sr-only">En vrai</span></span>
+                                <span class="mx-auto grid {{ $chip }} place-items-center rounded-full bg-onsite text-white"><flux:icon.map-pin variant="micro" class="{{ $chipIcon }}" /><span class="sr-only">En vrai</span></span>
                             @elseif ($answer === \App\View\Components\DemoPoll::Remote)
-                                <span class="mx-auto grid {{ $chip }} place-items-center rounded-full bg-blush text-forest"><flux:icon.video-camera variant="micro" class="{{ $chipIcon }}" /><span class="sr-only">En visio</span></span>
+                                <span class="mx-auto grid {{ $chip }} place-items-center rounded-full bg-remote text-forest"><flux:icon.video-camera variant="micro" class="{{ $chipIcon }}" /><span class="sr-only">En visio</span></span>
                             @else
                                 <span class="mx-auto block size-2 rounded-full bg-forest/15 dark:bg-white/15"></span><span class="sr-only">Pas dispo</span>
                             @endif
@@ -92,8 +92,8 @@
     </figcaption>
 
     @if ($interactive)
-        <template data-icon-onsite><span class="grid size-7 place-items-center rounded-full bg-forest text-white dark:bg-sun dark:text-forest"><flux:icon.map-pin variant="micro" class="size-3.5" /></span></template>
-        <template data-icon-remote><span class="grid size-7 place-items-center rounded-full bg-blush text-forest"><flux:icon.video-camera variant="micro" class="size-3.5" /></span></template>
+        <template data-icon-onsite><span class="grid size-7 place-items-center rounded-full bg-onsite text-white"><flux:icon.map-pin variant="micro" class="size-3.5" /></span></template>
+        <template data-icon-remote><span class="grid size-7 place-items-center rounded-full bg-remote text-forest"><flux:icon.video-camera variant="micro" class="size-3.5" /></span></template>
     @endif
 </figure>
 

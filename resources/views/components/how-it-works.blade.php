@@ -69,13 +69,13 @@
                                 <span class="self-center text-right opacity-70">{{ 18 + intdiv($cell, 2) }}h{{ $cell % 2 ? '30' : '' }}</span>
                                 @foreach ($grid as $column => $cells)
                                     @php($state = $cells[$cell])
-                                    <span @class(['h-7 rounded-md', 'bg-forest/10 dark:bg-white/10' => $state === '0', 'hiw-pop bg-forest dark:bg-sun' => $state === 'p', 'hiw-pop bg-blush' => $state === 'd']) @if ($state !== '0') style="animation-delay: {{ ($column * 6 + $cell) * 40 }}ms" @endif></span>
+                                    <span @class(['h-7 rounded-md', 'bg-forest/10 dark:bg-white/10' => $state === '0', 'hiw-pop bg-onsite' => $state === 'p', 'hiw-pop bg-remote' => $state === 'd']) @if ($state !== '0') style="animation-delay: {{ ($column * 6 + $cell) * 40 }}ms" @endif></span>
                                 @endforeach
                             @endforeach
                         </div>
                         <p class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-semibold">
-                            <span class="inline-flex items-center gap-1.5"><span class="size-3 rounded-sm bg-forest dark:bg-sun"></span>Sur place</span>
-                            <span class="inline-flex items-center gap-1.5"><span class="size-3 rounded-sm bg-blush"></span>À distance</span>
+                            <span class="inline-flex items-center gap-1.5"><span class="size-3 rounded-sm bg-onsite"></span>Sur place</span>
+                            <span class="inline-flex items-center gap-1.5"><span class="size-3 rounded-sm bg-remote"></span>À distance</span>
                         </p>
                     </div>
                 </div>

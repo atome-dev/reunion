@@ -7,8 +7,8 @@
 >
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-3 text-sm">
-            <span class="inline-flex items-center gap-1.5"><span class="size-4 rounded bg-forest dark:bg-sun"></span>{{ __('On site') }}</span>
-            <span class="inline-flex items-center gap-1.5"><span class="size-4 rounded bg-blush"></span>{{ __('Remote') }}</span>
+            <span class="inline-flex items-center gap-1.5"><span class="size-4 rounded bg-onsite"></span>{{ __('On site') }}</span>
+            <span class="inline-flex items-center gap-1.5"><span class="size-4 rounded bg-remote"></span>{{ __('Remote') }}</span>
             <span class="inline-flex items-center gap-1.5"><span class="size-4 rounded border border-zinc-300 dark:border-white/20"></span>{{ __('Unavailable') }}</span>
         </div>
         <flux:text size="sm">
@@ -73,8 +73,8 @@
                             'max-sm:hidden': index !== mobileDay,
                             'bg-zinc-100 dark:bg-white/5': !day.inRange && value(day.date, {{ $cell }}) === '0',
                             'opacity-40': !day.inRange && value(day.date, {{ $cell }}) !== '0',
-                            'bg-forest dark:bg-sun': value(day.date, {{ $cell }}) === 'p',
-                            'bg-blush': value(day.date, {{ $cell }}) === 'd',
+                            'bg-onsite': value(day.date, {{ $cell }}) === 'p',
+                            'bg-remote': value(day.date, {{ $cell }}) === 'd',
                             'bg-white dark:bg-night': day.inRange && value(day.date, {{ $cell }}) === '0',
                         }"></button>
                 </template>

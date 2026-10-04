@@ -36,13 +36,13 @@
                                     <span class="self-center text-right opacity-70">{{ 18 + intdiv($cell, 2) }}h{{ $cell % 2 ? '30' : '' }}</span>
                                     @foreach ($grid as $cells)
                                         @php($state = $cells[$cell])
-                                        <span @class(['h-6 rounded-md', 'bg-forest/10 dark:bg-white/10' => $state === '0', 'bg-forest dark:bg-sun' => $state === 'p', 'bg-blush' => $state === 'd'])></span>
+                                        <span @class(['h-6 rounded-md', 'bg-forest/10 dark:bg-white/10' => $state === '0', 'bg-onsite' => $state === 'p', 'bg-remote' => $state === 'd'])></span>
                                     @endforeach
                                 @endforeach
                             </div>
                             <p class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-semibold">
-                                <span class="inline-flex items-center gap-1.5"><span class="size-3 rounded-sm bg-forest dark:bg-sun"></span>Sur place</span>
-                                <span class="inline-flex items-center gap-1.5"><span class="size-3 rounded-sm bg-blush"></span>À distance</span>
+                                <span class="inline-flex items-center gap-1.5"><span class="size-3 rounded-sm bg-onsite"></span>Sur place</span>
+                                <span class="inline-flex items-center gap-1.5"><span class="size-3 rounded-sm bg-remote"></span>À distance</span>
                                 <span class="ms-auto font-normal opacity-75">Exemple fictif.</span>
                             </p>
                         </div>
