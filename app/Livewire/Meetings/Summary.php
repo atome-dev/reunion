@@ -125,7 +125,7 @@ class Summary extends Component
     public function windows(): array
     {
         $windows = (new FindBestWindows)(
-            $this->meeting->cellsByMember(),
+            $this->meeting->availableCellsByMember(),
             $this->meeting->rangeDays(),
             $this->duration,
             $this->minParticipants,

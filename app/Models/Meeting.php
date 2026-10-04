@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Actions\Availability\BusyCells;
 use App\Enums\MeetingStatus;
 use Carbon\CarbonInterface;
 use Carbon\CarbonPeriod;
@@ -130,6 +131,25 @@ class Meeting extends Model
             ->groupBy('user_id')
             ->map(fn (Collection $days): array => $days->mapWithKeys(fn (AvailabilityDay $day): array => [$day->day => $day->cells])->all())
             ->all();
+    }
+
+    /**
+     * Members' cells within the range, minus the cells taken by their other confirmed meetings.
+     *
+     * @return array<int, array<string, string>>
+     */
+    public function availableCellsByMember(): array
+    {
+        $cells = $this->cellsByMember();
+        $busy = (new BusyCells)(array_keys($cells), $this->range_start->toDateString(), $this->range_end->toDateString(), $this->id);
+
+        foreach ($cells as $userId => $days) {
+            foreach ($days as $day => $value) {
+                $cells[$userId][$day] = AvailabilityDay::withoutBusy($value, array_keys($busy[$userId][$day] ?? []));
+            }
+        }
+
+        return $cells;
     }
 
     /**

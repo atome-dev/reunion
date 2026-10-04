@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Meetings;
 
+use App\Actions\Availability\BusyCells;
 use App\Actions\Meetings\CancelVote;
 use App\Actions\Meetings\ConfirmMeeting;
 use App\Actions\Meetings\FindBestSlot;
@@ -39,6 +40,9 @@ class Vote extends Component
             ->where('user_id', Auth::id())
             ->whereBetween('day', [$meeting->range_start->toDateString(), $meeting->range_end->toDateString()])
             ->pluck('cells', 'day');
+
+        $busy = (new BusyCells)([Auth::id()], $meeting->range_start->toDateString(), $meeting->range_end->toDateString(), $meeting->id)[Auth::id()] ?? [];
+        $grid = $grid->map(fn (string $cells, string $day): string => AvailabilityDay::withoutBusy($cells, array_keys($busy[$day] ?? [])));
 
         foreach ($this->proposedSlots as $slot) {
             $this->responses[$slot->id] = $slot->votes->firstWhere('user_id', Auth::id())?->status->value

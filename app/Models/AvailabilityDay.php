@@ -62,6 +62,20 @@ class AvailabilityDay extends Model
     }
 
     /**
+     * The cells with every busy index set to unavailable.
+     *
+     * @param  list<int>  $busyIndexes
+     */
+    public static function withoutBusy(string $cells, array $busyIndexes): string
+    {
+        foreach ($busyIndexes as $index) {
+            $cells[$index] = '0';
+        }
+
+        return $cells;
+    }
+
+    /**
      * How a member can attend a stretch of cells: on site only if every cell is on site.
      */
     public static function statusFor(string $cells, int $start, int $length): AvailabilityStatus
