@@ -12,6 +12,7 @@ use Flux\Flux;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
@@ -23,12 +24,46 @@ class Show extends Component
 
     public string $invitationEmails = '';
 
+    /** 'creator' or 'members': Flux segmented radios cannot bind booleans. */
+    public string $requestMeetingsAudience = 'creator';
+
+    public string $inviteAudience = 'creator';
+
+    public string $validateAudience = 'creator';
+
     public function mount(Group $group): void
     {
         $this->authorize('view', $group);
 
         $this->group = $group;
         $this->name = $group->name;
+        $this->requestMeetingsAudience = $group->members_can_request_meetings ? 'members' : 'creator';
+        $this->inviteAudience = $group->members_can_invite ? 'members' : 'creator';
+        $this->validateAudience = $group->members_can_validate ? 'members' : 'creator';
+    }
+
+    /**
+     * Settings are saved as soon as a choice changes.
+     */
+    public function updated(string $property): void
+    {
+        $columns = [
+            'requestMeetingsAudience' => 'members_can_request_meetings',
+            'inviteAudience' => 'members_can_invite',
+            'validateAudience' => 'members_can_validate',
+        ];
+
+        if (! isset($columns[$property])) {
+            return;
+        }
+
+        $this->authorize('update', $this->group);
+
+        $this->validateOnly($property, [$property => ['required', 'in:creator,members']]);
+
+        $this->group->update([$columns[$property] => $this->{$property} === 'members']);
+
+        Flux::toast(variant: 'success', text: __('Settings saved.'));
     }
 
     /**
@@ -129,9 +164,22 @@ class Show extends Component
         return $this->group->invitations()->whereNull('accepted_at')->latest()->get();
     }
 
-    public function isOrganizer(): bool
+    #[Computed]
+    public function canUpdate(): bool
     {
-        return $this->group->isCreator(Auth::user());
+        return Gate::allows('update', $this->group);
+    }
+
+    #[Computed]
+    public function canRequestMeeting(): bool
+    {
+        return Gate::allows('requestMeeting', $this->group);
+    }
+
+    #[Computed]
+    public function canInvite(): bool
+    {
+        return Gate::allows('invite', $this->group);
     }
 
     /**

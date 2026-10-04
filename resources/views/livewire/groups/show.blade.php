@@ -6,8 +6,10 @@
         </div>
 
         <div class="flex flex-wrap gap-2">
-            @if ($this->isOrganizer())
+            @if ($this->canRequestMeeting)
                 <flux:button variant="primary" icon="plus" :href="route('meetings.create', $group)" wire:navigate>{{ __('New request') }}</flux:button>
+            @endif
+            @if ($this->canUpdate)
                 <flux:dropdown align="end">
                     <flux:button icon="ellipsis-horizontal" :aria-label="__('Group actions')" />
                     <flux:menu>
@@ -17,9 +19,10 @@
                         <flux:menu.item icon="trash" variant="danger" wire:click="deleteGroup" wire:confirm="{{ __('Delete this group, its meetings and all answers?') }}">{{ __('Delete the group') }}</flux:menu.item>
                     </flux:menu>
                 </flux:dropdown>
-            @else
-                <flux:button icon="arrow-right-start-on-rectangle" wire:click="leave" wire:confirm="{{ __('Leave this group?') }}">{{ __('Leave the group') }}</flux:button>
             @endif
+            @unless ($group->isCreator(auth()->user()))
+                <flux:button icon="arrow-right-start-on-rectangle" wire:click="leave" wire:confirm="{{ __('Leave this group?') }}">{{ __('Leave the group') }}</flux:button>
+            @endunless
         </div>
     </header>
 
@@ -67,7 +70,7 @@
                 <flux:table.columns>
                     <flux:table.column>{{ __('Name') }}</flux:table.column>
                     <flux:table.column>{{ __('Role') }}</flux:table.column>
-                    @if ($this->isOrganizer())
+                    @if ($this->canUpdate)
                         <flux:table.column><span class="sr-only">{{ __('Actions') }}</span></flux:table.column>
                     @endif
                 </flux:table.columns>
@@ -80,12 +83,12 @@
                             </flux:table.cell>
                             <flux:table.cell>
                                 @if ($group->isCreator($member))
-                                    <flux:badge size="sm" color="yellow">{{ __('Organizer') }}</flux:badge>
+                                    <flux:badge size="sm" color="yellow">{{ __('Group creator') }}</flux:badge>
                                 @else
                                     <flux:badge size="sm">{{ __('Member') }}</flux:badge>
                                 @endif
                             </flux:table.cell>
-                            @if ($this->isOrganizer())
+                            @if ($this->canUpdate)
                                 <flux:table.cell align="end">
                                     @unless ($group->isCreator($member))
                                         <flux:button size="sm" variant="ghost" icon="x-mark" wire:click="removeMember({{ $member->id }})" wire:confirm="{{ __('Remove :name from the group?', ['name' => $member->name]) }}" :aria-label="__('Remove :name from the group?', ['name' => $member->name])" />
@@ -98,7 +101,7 @@
             </flux:table>
         </flux:card>
 
-        @if ($this->isOrganizer())
+        @if ($this->canInvite)
             @if ($this->pendingInvitations->isNotEmpty())
                 <flux:card class="p-0!">
                     <flux:table>
@@ -132,7 +135,23 @@
         @endif
     </section>
 
-    @if ($this->isOrganizer())
+    @if ($this->canUpdate)
+        <section class="flex flex-col gap-4">
+            <flux:heading size="lg" level="2">{{ __('Settings') }}</flux:heading>
+            <flux:card class="flex flex-col gap-6">
+                @foreach ([
+                    'requestMeetingsAudience' => [__('Request a meeting'), __('Who can start a new meeting request in this group.')],
+                    'inviteAudience' => [__('Add or invite members'), __('Who can invite people and manage pending invitations.')],
+                    'validateAudience' => [__('Validate a date'), __('Who can see the best slots, confirm a date or put slots to a vote.')],
+                ] as $property => [$label, $help])
+                    <flux:radio.group wire:key="setting-{{ $property }}" wire:model.live="{{ $property }}" :label="$label" :description="$help" variant="segmented">
+                        <flux:radio value="creator" :label="__('Group creator')" />
+                        <flux:radio value="members" :label="__('All members')" />
+                    </flux:radio.group>
+                @endforeach
+            </flux:card>
+        </section>
+
         <flux:modal name="rename-group" class="max-w-md">
             <form wire:submit="rename" class="flex flex-col gap-6">
                 <flux:heading size="lg">{{ __('Rename the group') }}</flux:heading>

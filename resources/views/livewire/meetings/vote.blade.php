@@ -22,7 +22,7 @@
         </section>
     @endcan
 
-    @if ($this->isOrganizer && $meeting->status === \App\Enums\MeetingStatus::Voting)
+    @if ($this->canValidate && $meeting->status === \App\Enums\MeetingStatus::Voting)
         <section class="flex flex-col gap-3">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <flux:heading size="lg" level="2">{{ __('Vote results') }}</flux:heading>

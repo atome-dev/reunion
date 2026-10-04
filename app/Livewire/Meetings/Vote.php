@@ -17,6 +17,7 @@ use Flux\Flux;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -89,9 +90,9 @@ class Vote extends Component
     }
 
     #[Computed]
-    public function isOrganizer(): bool
+    public function canValidate(): bool
     {
-        return $this->meeting->group->isCreator(Auth::user());
+        return Gate::allows('validate', $this->meeting);
     }
 
     /**

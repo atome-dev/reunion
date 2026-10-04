@@ -4,7 +4,8 @@ namespace App\Livewire\Meetings;
 
 use App\Models\Meeting;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 class Show extends Component
@@ -37,8 +38,15 @@ class Show extends Component
         $this->redirectRoute('groups.show', $this->meeting->group, navigate: true);
     }
 
-    public function isOrganizer(): bool
+    #[Computed]
+    public function canUpdate(): bool
     {
-        return $this->meeting->group->isCreator(Auth::user());
+        return Gate::allows('update', $this->meeting);
+    }
+
+    #[Computed]
+    public function canValidate(): bool
+    {
+        return Gate::allows('validate', $this->meeting);
     }
 }

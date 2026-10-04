@@ -10,11 +10,12 @@
                     <flux:text>{{ __('From :start to :end · answer before :deadline', ['start' => $meeting->range_start->translatedFormat('j F'), 'end' => $meeting->range_end->translatedFormat('j F'), 'deadline' => $meeting->deadline->translatedFormat('j F')]) }}</flux:text>
                 @endif
             </div>
+            <flux:text size="sm" class="mt-2">{{ __('Requested by :name', ['name' => $meeting->creator->name]) }}</flux:text>
             @if ($meeting->description)
                 <flux:text class="mt-2 max-w-prose">{{ $meeting->description }}</flux:text>
             @endif
         </div>
-        @if ($this->isOrganizer())
+        @if ($this->canUpdate)
             <div class="flex flex-wrap items-center gap-2">
                 @if ($meeting->status === MeetingStatus::Collecting)
                     <flux:button icon="pencil" :href="route('meetings.edit', $meeting)" wire:navigate>{{ __('Edit the request') }}</flux:button>
@@ -46,7 +47,7 @@
             </div>
             <livewire:availability.grid :meeting="$meeting" :key="'grid-'.$meeting->id" />
         </section>
-        @if ($this->isOrganizer())
+        @if ($this->canValidate)
             <section class="flex flex-col gap-4">
                 <flux:heading size="lg" level="2">{{ __('Best slots') }}</flux:heading>
                 <livewire:meetings.summary :meeting="$meeting" :key="'summary-'.$meeting->id" />
