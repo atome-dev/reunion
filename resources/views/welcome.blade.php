@@ -102,9 +102,14 @@
 
         <footer class="bg-forest text-milk/70 dark:bg-night-raised">
             <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 border-t border-milk/15 px-5 py-8 text-sm sm:px-8">
-                <span>© {{ date('Y') }} {{ config('app.name') }}</span>
+                <span>© {{ date('Y') }} Atome Dev</span>
+                <flux:modal.trigger name="about">
+                    <button type="button" class="underline-offset-4 hover:text-milk hover:underline">{{ __('About') }}</button>
+                </flux:modal.trigger>
             </div>
         </footer>
+
+        <x-about-modal />
 
         @fluxScripts
     </body>

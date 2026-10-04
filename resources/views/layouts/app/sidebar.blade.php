@@ -39,6 +39,12 @@
 
             <flux:spacer />
 
+            <flux:sidebar.nav>
+                <flux:modal.trigger name="about">
+                    <flux:sidebar.item icon="information-circle" as="button">{{ __('About') }}</flux:sidebar.item>
+                </flux:modal.trigger>
+            </flux:sidebar.nav>
+
             <div class="hidden items-center justify-between gap-2 lg:flex">
                 <x-desktop-user-menu :name="auth()->user()->name" />
                 <x-appearance-toggle />
@@ -109,6 +115,8 @@
                 <flux:toast />
             </flux:toast.group>
         @endpersist
+
+        <x-about-modal />
 
         @fluxScripts
     </body>
