@@ -18,6 +18,10 @@
 
 ---
 
+<p align="center">
+  <img src="docs/screenshots/accueil.png" alt="Page d'accueil de Réunion : « Réunir tout le monde, sans le casse-tête » et un exemple de sondage" width="900">
+</p>
+
 ## Pourquoi Réunion ?
 
 Caler une assemblée, un bureau ou un atelier dans une association, c'est souvent des dizaines de messages, un sondage oublié et des absents de dernière minute. Réunion part d'une idée simple : **chacun tient son calendrier de disponibilités à jour une fois pour toutes**, et l'application trouve les meilleurs créneaux pour chaque demande.
@@ -29,6 +33,28 @@ Caler une assemblée, un bureau ou un atelier dans une association, c'est souven
 3. **Le résumé trouve les meilleurs créneaux** selon la durée voulue, le nombre minimum de présents et le nombre minimum de personnes sur place.
 4. **On valide une date, ou on fait voter** les membres sur plusieurs créneaux.
 5. **Tout le monde est prévenu** : e-mail de confirmation, fichier agenda `.ics` et lien « Ajouter à Google Agenda ».
+
+## Captures d'écran
+
+<table>
+  <tr>
+    <td width="70%"><img src="docs/screenshots/disponibilites.png" alt="Grille « Mes disponibilités » : cases bleues sur place, vertes à distance, jaunes pour une réunion confirmée"></td>
+    <td width="30%"><img src="docs/screenshots/mobile.png" alt="La même grille sur mobile, un jour à la fois"></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><em>Le calendrier de disponibilités, sur ordinateur et sur mobile : bleu sur place, vert à distance, jaune pour une réunion déjà confirmée.</em></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/screenshots/resume.png" alt="Résumé des meilleurs créneaux d'une demande, avec présents, sur place, à distance et absents" width="760"><br>
+  <em>Le résumé des meilleurs créneaux selon la durée et le nombre de présents.</em>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/groupe-sombre.png" alt="Page d'un groupe en thème sombre : réunions et liste des membres" width="900"><br>
+  <em>Un groupe, ses réunions et ses membres, en thème sombre.</em>
+</p>
 
 ## Fonctionnalités
 
