@@ -81,6 +81,14 @@ test('the vote results and actions follow the validation setting', function () {
     $this->actingAs($this->member)->get(route('meetings.show', $meeting))->assertSee(__('Cancel the vote'));
 });
 
+test('an unknown audience is refused and nothing changes', function () {
+    Livewire::actingAs($this->creator)->test(GroupShow::class, ['group' => $this->group])
+        ->set('validateAudience', 'everyone')
+        ->assertHasErrors('validateAudience');
+
+    expect($this->group->fresh()->members_can_validate)->toBeFalse();
+});
+
 test('the creator badge reads group creator', function () {
     $this->actingAs($this->member)->get(route('groups.show', $this->group))->assertSee(__('Group creator'));
 });
