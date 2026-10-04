@@ -248,16 +248,34 @@ document.addEventListener('alpine:init', () => {
             return [...target].map((value, index) => (this.isBusy(targetDate, index) || this.isBusy(sourceDate, index) ? value : source[index])).join('');
         },
 
-        copyToWeek(date) {
-            this.currentWeek.filter((day) => day.inRange && day.date !== date).forEach((day) => {
-                const merged = this.mergeInto(date, day.date);
+        // Apply copies ({ source: date, target: day }), asking first when filled-in cells would be replaced.
+        applyCopies(copies) {
+            const changes = copies
+                .map(({ source, target }) => ({ target, merged: this.mergeInto(source, target.date) }))
+                .filter(({ target, merged }) => (this.cells[target.date] ?? EMPTY) !== merged);
 
-                if ((this.cells[day.date] ?? EMPTY) !== merged) {
-                    this.cells[day.date] = merged;
-                    this.dirty.add(day.date);
-                }
+            const overwritten = changes.filter(({ target, merged }) => {
+                const current = this.cells[target.date] ?? EMPTY;
+
+                return [...current].some((value, index) => value !== '0' && merged[index] !== value);
             });
+
+            if (overwritten.length > 0 && !window.confirm(this.labels.overwrite.replace(':days', () => overwritten.map(({ target }) => target.label).join(', ')))) {
+                return false;
+            }
+
+            changes.forEach(({ target, merged }) => {
+                this.cells[target.date] = merged;
+                this.dirty.add(target.date);
+            });
+
             this.save();
+
+            return true;
+        },
+
+        copyToWeek(date) {
+            this.applyCopies(this.currentWeek.filter((day) => day.inRange && day.date !== date).map((day) => ({ source: date, target: day })));
         },
 
         // Copy the shown week onto the next one (editable days only), then show it.
@@ -268,23 +286,14 @@ document.addEventListener('alpine:init', () => {
                 return;
             }
 
-            this.currentWeek.forEach((day, index) => {
-                const target = next[index];
+            const copies = this.currentWeek
+                .map((day, index) => ({ source: day, target: next[index] }))
+                .filter(({ source, target }) => target.inRange && (source.inRange || source.date in this.cells))
+                .map(({ source, target }) => ({ source: source.date, target }));
 
-                if (!target.inRange || (!day.inRange && !(day.date in this.cells))) {
-                    return;
-                }
-
-                const merged = this.mergeInto(day.date, target.date);
-
-                if ((this.cells[target.date] ?? EMPTY) !== merged) {
-                    this.cells[target.date] = merged;
-                    this.dirty.add(target.date);
-                }
-            });
-
-            this.save();
-            this.goToWeek(this.week + 1);
+            if (this.applyCopies(copies)) {
+                this.goToWeek(this.week + 1);
+            }
         },
 
         save() {

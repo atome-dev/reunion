@@ -263,6 +263,7 @@
     "The :attribute must be at least :length characters and contain at least one number.": "Le champ :attribute doit contenir au moins :length caractères, dont un chiffre.",
     "The :attribute must be at least :length characters and contain at least one special character and one number.": "Le champ :attribute doit contenir au moins :length caractères, dont un caractère spécial et un chiffre.",
     "The :attribute must be at least :length characters and contain at least one special character.": "Le champ :attribute doit contenir au moins :length caractères, dont un caractère spécial.",
+    "The availability already filled in on :days will be replaced. Continue?": "Les disponibilités déjà saisies le :days seront remplacées. Continuer ?",
     "The :attribute must be at least :length characters and contain at least one uppercase character and one number.": "Le champ :attribute doit contenir au moins :length caractères, dont une majuscule et un chiffre.",
     "The :attribute must be at least :length characters and contain at least one uppercase character and one special character.": "Le champ :attribute doit contenir au moins :length caractères, dont une majuscule et un caractère spécial.",
     "The :attribute must be at least :length characters and contain at least one uppercase character, one number, and one special character.": "Le champ :attribute doit contenir au moins :length caractères, dont une majuscule, un chiffre et un caractère spécial.",
