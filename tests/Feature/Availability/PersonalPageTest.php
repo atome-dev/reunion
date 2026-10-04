@@ -129,6 +129,17 @@ test('the meeting page uses the shared grid and links to the whole calendar', fu
         ->assertSee(__('See my whole calendar'));
 });
 
+test('a whole week duplicated at once is saved in one go', function () {
+    $week = collect(range(9, 15))->mapWithKeys(fn (int $day): array => [sprintf('2026-11-%02d', $day) => $this->evening])->all();
+
+    Livewire::actingAs($this->user)->test(Grid::class)
+        ->call('saveDays', $week)
+        ->assertHasNoErrors()
+        ->assertReturned(true);
+
+    expect(AvailabilityDay::where('user_id', $this->user->id)->count())->toBe(7);
+});
+
 test('earlier days of the current week still show what was filled in', function () {
     AvailabilityDay::factory()->for($this->user)->cells($this->evening)->create(['day' => '2026-11-02']);
     $this->travelTo(now('Europe/Paris')->setDate(2026, 11, 4)->setTime(10, 0));

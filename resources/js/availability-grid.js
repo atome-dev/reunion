@@ -230,6 +230,33 @@ document.addEventListener('alpine:init', () => {
             this.save();
         },
 
+        // Copy the shown week onto the next one (editable days only), then show it.
+        copyWeekToNext() {
+            const next = this.weeks[this.week + 1];
+
+            if (!this.canEdit || !next) {
+                return;
+            }
+
+            this.currentWeek.forEach((day, index) => {
+                const target = next[index];
+
+                if (!target.inRange || (!day.inRange && !(day.date in this.cells))) {
+                    return;
+                }
+
+                const cells = this.cells[day.date] ?? EMPTY;
+
+                if ((this.cells[target.date] ?? EMPTY) !== cells) {
+                    this.cells[target.date] = cells;
+                    this.dirty.add(target.date);
+                }
+            });
+
+            this.save();
+            this.goToWeek(this.week + 1);
+        },
+
         save() {
             if (this.dirty.size === 0 && this.status !== 'error') {
                 return;

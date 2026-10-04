@@ -31,10 +31,11 @@
         <flux:callout icon="lock-closed" :heading="__('The grid is closed')" :text="__('A date is being chosen from everyone\'s availability.')" />
     @endif
 
-    <div class="flex items-center justify-between gap-2">
+    <div class="flex flex-wrap items-center gap-2">
         <flux:button size="sm" icon="chevron-left" x-on:click="goToWeek(week - 1)" x-bind:disabled="week === 0" :aria-label="__('Previous week')" />
-        <flux:heading x-text="currentWeek[0].label + ' – ' + currentWeek[6].label"></flux:heading>
+        <flux:heading class="min-w-44 text-center" x-text="currentWeek[0].label + ' – ' + currentWeek[6].label"></flux:heading>
         <flux:button size="sm" icon="chevron-right" x-on:click="goToWeek(week + 1)" x-bind:disabled="week === weeks.length - 1" :aria-label="__('Next week')" />
+        <flux:button size="sm" icon="document-duplicate" x-show="canEdit" x-on:click="copyWeekToNext()" x-bind:disabled="week === weeks.length - 1">{{ __('Duplicate to next week') }}</flux:button>
     </div>
 
     {{-- Mobile: one day at a time --}}
@@ -46,13 +47,15 @@
         </template>
     </div>
 
-    <flux:card class="overflow-x-auto p-2!">
-        <div class="grid select-none grid-cols-[3.5rem_1fr] gap-px sm:grid-cols-[3.5rem_repeat(7,minmax(2.75rem,1fr))]" x-on:pointerdown="start($event)" x-on:pointermove="move($event)">
+    <flux:card class="w-full overflow-x-auto p-2! sm:w-fit">
+        <div class="grid select-none grid-cols-[3.5rem_1fr] gap-px sm:grid-cols-[3.5rem_repeat(7,3.5rem)]" x-on:pointerdown="start($event)" x-on:pointermove="move($event)">
             <div></div>
             <template x-for="(day, index) in currentWeek" :key="'head-' + day.date">
-                <div class="px-1 pb-2 text-center text-xs font-semibold" x-bind:class="{ 'max-sm:hidden': index !== mobileDay, 'opacity-40': !day.inRange }">
+                <div class="flex flex-col items-center px-0.5 pb-2 text-center text-xs font-semibold leading-tight" x-bind:class="{ 'max-sm:hidden': index !== mobileDay, 'opacity-40': !day.inRange }">
                     <span x-text="day.label"></span>
-                    <button type="button" x-show="canEdit && day.inRange" x-on:click="copyToWeek(day.date)" class="mt-1 block w-full text-[11px] font-normal underline opacity-70 hover:opacity-100">{{ __('Copy to week') }}</button>
+                    <button type="button" x-show="canEdit && day.inRange" x-on:click="copyToWeek(day.date)" title="{{ __('Copy this day to the whole week') }}" aria-label="{{ __('Copy this day to the whole week') }}" class="mt-1 rounded p-0.5 opacity-60 hover:bg-zinc-100 hover:opacity-100 dark:hover:bg-white/10">
+                        <flux:icon.document-duplicate variant="micro" class="size-4" />
+                    </button>
                 </div>
             </template>
 
